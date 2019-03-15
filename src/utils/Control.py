@@ -1,26 +1,23 @@
-import pyglet.window
 from pyglet.window import key
 
 
 class Control:
-    def __init__(self, window):
+    def __init__(self):
         self.actions = {}
         self.action_state = {}
-
         self.keys = key.KeyStateHandler()
-        window.push_handlers(self.keys)
-
         self.PRESSED = 0
         self.RELEASED = 1
         self.JUST_PRESSED = 2
         self.JUST_RELEASED = 3
-
         self.add_input("ui_up", [key.UP])
         self.add_input("ui_down", [key.DOWN])
         self.add_input("ui_left", [key.LEFT])
         self.add_input("ui_right", [key.RIGHT])
         self.add_input("ui_action", [key.ENTER])
-        pass
+
+    def setup(self,window):
+        window.push_handlers(self.keys)
 
     def is_pressed(self, action):
         if self.action_state[action] == self.PRESSED or self.action_state[action] == self.JUST_PRESSED:
@@ -59,3 +56,6 @@ class Control:
                         else:
                             current = self.RELEASED
                     self.action_state[action] = current
+
+
+control = Control()
