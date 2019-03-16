@@ -4,7 +4,7 @@ import pymunk
 from pymunk.vec2d import Vec2d
 
 class Player:
-    def __init__(self, player_id, space):
+    def __init__(self, player_id, pos_x, pos_y, rotation,  space):
         self.MASS = 10
         self.MAX_ACCEL = 20
         self.TAN_BREAK_FACTOR = 1/20
@@ -25,9 +25,9 @@ class Player:
         self.body = pymunk.Body(self.MASS,pymunk.moment_for_box(self.MASS,(250/8,124/8)))
         self.poly = pymunk.Poly.create_box(self.body,(250/8, 124/8))
         space.add(self.body,self.poly)
-        self.body.angle = 0.5
+        self.body.angle = rotation
         self.drive_angle = 0
-        self.body.position = Vec2d(100,100)
+        self.body.position = Vec2d(pos_x, pos_y)
 
     def update(self, dt):
         front_wheel_velocity = self.body.velocity_at_local_point(Vec2d(130/8, 0)).rotated(-self.body.angle)
