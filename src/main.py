@@ -12,14 +12,7 @@ fps_display = pyglet.window.FPSDisplay(main_window)
 space = pymunk.Space()
 Control.control.setup(main_window)
 
-players = [Player(1, 100, 100, 0, space),
-           Player(1, 100, 120, 0, space),
-           Player(1, 100, 140, 0, space),
-           Player(1, 100, 160, 0, space),
-           Player(1, 100, 180, 0, space),
-           Player(1, 100, 200, 0, space),
-           Player(1, 100, 220, 0, space),
-           Player(1, 100, 240, 0, space),]
+players = [Player(1, 100, 100, 0, space)]
 
 options = pymunk.pyglet_util.DrawOptions()
 
