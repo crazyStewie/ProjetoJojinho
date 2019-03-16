@@ -60,8 +60,10 @@ class Control:
 
     def get_axis(self, action):
         joy_id, axis_id = self.axis_actions[action]
-        this_joy = self.joy_axis[joy_id]
-        return this_joy[axis_id]
+        if joy_id < len(self.joy_axis):
+            this_joy = self.joy_axis[joy_id]
+            return this_joy[axis_id]
+        return 0
 
     def update(self, window):
         for i in range(len(self.joysticks)):
