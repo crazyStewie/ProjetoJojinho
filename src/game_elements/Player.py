@@ -41,18 +41,18 @@ class Player:
                 self.drive_angle -= self.STEER_SPEED*dt*Control.control.get_axis("steer_player1")/abs(Control.control.get_axis("steer_player1"))
             elif abs(self.drive_angle) > abs(Control.control.get_axis("steer_player1"))*self.MAX_TURN:
                 self.drive_angle += self.STEER_SPEED*dt*Control.control.get_axis("steer_player1")/abs(Control.control.get_axis("steer_player1"))
-        if Control.control.is_pressed("ui_left"):
-            is_steering = True
-            if self.drive_angle < self.MAX_TURN:
-                self.drive_angle += self.STEER_SPEED*dt
-            else:
-                self.drive_angle = self.MAX_TURN
-        if Control.control.is_pressed("ui_right"):
-            is_steering = True
-            if self.drive_angle > -self.MAX_TURN:
-                self.drive_angle -= self.STEER_SPEED * dt
-            else:
-                self.drive_angle = -self.MAX_TURN
+        # if Control.control.is_pressed("ui_left"):
+        #     is_steering = True
+        #     if self.drive_angle < self.MAX_TURN:
+        #         self.drive_angle += self.STEER_SPEED*dt
+        #     else:
+        #         self.drive_angle = self.MAX_TURN
+        # if Control.control.is_pressed("ui_right"):
+        #     is_steering = True
+        #     if self.drive_angle > -self.MAX_TURN:
+        #         self.drive_angle -= self.STEER_SPEED * dt
+        #     else:
+        #         self.drive_angle = -self.MAX_TURN
         if not is_steering:
             if self.drive_angle > 0:
                 self.drive_angle -= self.STEER_SPEED*dt
@@ -62,9 +62,9 @@ class Player:
                 self.drive_angle += self.STEER_SPEED*dt
                 if self.drive_angle > 0:
                     self.drive_angle = 0
-        if Control.control.is_pressed("ui_up") or Control.control.is_pressed("accel_player1"):
+        if Control.control.is_pressed("accel_player1"):  # or Control.control.is_pressed("ui_up"):
             self.body.apply_impulse_at_local_point(self.MASS*self.MAX_ACCEL*Vec2d(1, 0).rotated(self.drive_angle), Vec2d(130/8, 0))
-        elif Control.control.is_pressed("ui_down") or Control.control.is_pressed("revert_player1"):
+        elif Control.control.is_pressed("revert_player1"):  # or Control.control.is_pressed("ui_down"):
             self.body.apply_impulse_at_local_point(self.MASS*self.MAX_ACCEL*Vec2d(-0.6, 0).rotated(self.drive_angle), Vec2d(130/8, 0))
         else:
             self.body.apply_impulse_at_local_point(self.MASS*self.TAN_BREAK_FACTOR*Vec2d(-1, 0).rotated(self.drive_angle)*front_wheel_velocity.dot(Vec2d(1, 0).rotated(self.drive_angle)), Vec2d(130/8, 0))
