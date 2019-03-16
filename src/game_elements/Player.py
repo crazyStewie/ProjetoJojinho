@@ -36,10 +36,10 @@ class Player:
         is_steering = False
         if abs(Control.control.get_axis("steer_player1")) >= 0.1:
             is_steering = True
-            if abs(self.drive_angle) < abs(Control.control.get_axis("steer_player1"))*self.MAX_TURN:
-                self.drive_angle -= self.STEER_SPEED*dt*Control.control.get_axis("steer_player1")/abs(Control.control.get_axis("steer_player1"))
-            elif abs(self.drive_angle) > abs(Control.control.get_axis("steer_player1"))*self.MAX_TURN:
-                self.drive_angle += self.STEER_SPEED*dt*Control.control.get_axis("steer_player1")/abs(Control.control.get_axis("steer_player1"))
+            if self.drive_angle < -Control.control.get_axis("steer_player1")*self.MAX_TURN:
+                self.drive_angle += self.STEER_SPEED*dt
+            elif self.drive_angle > -Control.control.get_axis("steer_player1")*self.MAX_TURN:
+                self.drive_angle -= self.STEER_SPEED*dt
         # if Control.control.is_pressed("ui_left"):
         #     is_steering = True
         #     if self.drive_angle < self.MAX_TURN:
