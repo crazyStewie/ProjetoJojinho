@@ -34,7 +34,6 @@ class Player:
         back_wheel_velocity = self.body.velocity_at_local_point(Vec2d(-130/8, 0)).rotated(-self.body.angle)
         # handling controls
         is_steering = False
-        print(Control.control.get_axis("steer_player1"))
         if abs(Control.control.get_axis("steer_player1")) >= 0.1:
             is_steering = True
             if abs(self.drive_angle) < abs(Control.control.get_axis("steer_player1"))*self.MAX_TURN:
