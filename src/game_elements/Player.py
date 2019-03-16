@@ -14,6 +14,7 @@ class Player:
 
         self.position = Vec2d(0,0)
         self.rotation = 0
+
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
         graphics = pyglet.resource.image("red_player.png")
@@ -61,23 +62,23 @@ class Player:
         # handling car behavior
         # front wheel
         lateral_impulse = self.MASS*front_wheel_velocity.dot(Vec2d(0, 1).rotated(self.drive_angle))/12
-        print(front_wheel_velocity)
-        print("front initial = ", lateral_impulse)
+        #print(front_wheel_velocity)
+        #print("front initial = ", lateral_impulse)
         if abs(lateral_impulse) > abs(self.MASS*self.LAT_BREAK_FACTOR):
             lateral_impulse /= abs(lateral_impulse)
             lateral_impulse *= self.MASS*self.LAT_BREAK_FACTOR
         self.body.apply_impulse_at_local_point(Vec2d(0, -1).rotated(self.drive_angle)*lateral_impulse, Vec2d(130/5, 0))
-        print("front lateral impulse = ", lateral_impulse)
-        print(self.drive_angle)
+        #print("front lateral impulse = ", lateral_impulse)
+        #print(self.drive_angle)
 
         # back wheel
         lateral_impulse = self.MASS*back_wheel_velocity.dot(Vec2d(0, 1))/12
-        print(back_wheel_velocity)
-        print("back initial = ", lateral_impulse)
+        #print(back_wheel_velocity)
+        #print("back initial = ", lateral_impulse)
         if abs(lateral_impulse) > abs(self.MASS*self.LAT_BREAK_FACTOR):
             lateral_impulse /= abs(lateral_impulse)
             lateral_impulse *= self.MASS * self.LAT_BREAK_FACTOR
-        print("back lateral impulse = ", lateral_impulse)
+        #print("back lateral impulse = ", lateral_impulse)
         self.body.apply_impulse_at_local_point(self.MASS*self.TAN_BREAK_FACTOR*Vec2d(-1, 0)*back_wheel_velocity.dot(Vec2d(1, 0)), Vec2d(-130/8, 0))
         self.body.apply_impulse_at_local_point(Vec2d(0, -1) * lateral_impulse, Vec2d(-130/8, 0))
 
