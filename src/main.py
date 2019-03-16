@@ -5,9 +5,12 @@ import pymunk.pyglet_util
 from src.utils import Control
 from game_elements.Player import Player
 from src.py_aux import consts
+from src.gui.GUI import GUI
 
 main_window = pyglet.window.Window(width=960, height=600)
 fps_display = pyglet.window.FPSDisplay(main_window)
+gui = GUI()
+gui.setup_initial_menu()
 
 space = pymunk.Space()
 Control.control.setup(main_window)
@@ -27,6 +30,7 @@ space.add(bounding_body, bounding_segments[0], bounding_segments[1],bounding_seg
 
 def update(dt):
     Control.control.update(main_window)
+    gui.update()
     for p in players:
         p.update(dt)
     space.step(dt)
@@ -36,6 +40,7 @@ def update(dt):
 def on_draw():
     main_window.clear()
     fps_display.draw()
+    gui.draw()
     for p in players:
         p.draw()
     #space.debug_draw(options)
