@@ -132,7 +132,7 @@ class __Editor:
                 self.is_moving = None
 
         if self.is_linking is not None:
-            if Mouse.mouse.is_just_released(0):
+            if Mouse.mouse.is_just_pressed(0):
                 to_link = self.is_hover
                 is_link_valid = (to_link is not None and to_link != self.is_linking)
                 for street in self.map.streets:
@@ -143,7 +143,7 @@ class __Editor:
                 self.is_linking = None
 
         if self.is_unlinking is not None:
-            if Mouse.mouse.is_just_released(0):
+            if Mouse.mouse.is_just_pressed(0):
                 to_unlink = self.is_hover
                 is_unlink_valid = (to_unlink is not None and to_unlink != self.is_unlinking)
                 for street in self.map.streets:
