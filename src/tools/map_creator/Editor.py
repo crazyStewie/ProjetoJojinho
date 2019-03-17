@@ -87,15 +87,15 @@ class __Editor:
             if self.is_unlinking is not None:
                 begin = self.is_unlinking
             else:
-                begin = self.is_unlinking
+                begin = self.is_linking
+            end = Mouse.mouse.position
             if self.is_hover is not None:
                 if begin != self.is_hover:
                     end = Vec2d(self.map.crossings[self.is_hover])
-                else:
-                    end = Mouse.mouse.position
+
             begin = Vec2d(self.map.crossings[begin])
             direction = (end-begin)
-            angle = direction.angle()
+            angle = direction.angle
             vectors = []
             radius = Vec2d(0,0.8*self.map.STREET_WIDTH)
             vectors.append(radius.rotated(angle))
@@ -108,7 +108,7 @@ class __Editor:
                 vectors.append(radius.rotated(angle) + direction)
             verts = []
             for vector in vectors:
-                verts += [vector.x, vector.y]
+                verts += [vector.x + begin.x, vector.y+begin.y]
             self.link_indicator = pyglet.graphics.vertex_list(resolution+2, ('v2f', verts))
 
     def update(self, dt):
@@ -202,14 +202,15 @@ class __Editor:
 
         self.update_hover_indicator()
         self.update_draw_map()
+        self.update_link_indicator()
         pass
 
     def draw(self):
         self.draw_map()
         if self.hover_indicator:
             self.hover_indicator.draw(pyglet.gl.GL_LINE_LOOP)
-        if self.hover_indicator:
-            self.hover_indicator.draw(pyglet.gl.GL_LINE_LOOP)
+        if self.link_indicator:
+            self.link_indicator.draw(pyglet.gl.GL_LINE_LOOP)
 
     def open(self):
         print("opening a file")
