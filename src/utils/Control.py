@@ -1,6 +1,11 @@
 import pyglet
 from pyglet.window import key
-
+def numcap(num,min,max):
+    if num < min:
+        return min
+    if num > max:
+        return max
+    return num
 
 class Control:
     def __init__(self):
@@ -21,14 +26,14 @@ class Control:
         self.add_input("ui_left", [key.LEFT])
         self.add_input("ui_right", [key.RIGHT])
         self.add_input("ui_action", [key.ENTER])
-        self.add_joystick_input("accel_player1", [(0, 0)])
-        self.add_joystick_input("revert_player1", [(0,1)])
-        self.add_axis("steer_player1", (0, 0))
-        self.joy_axis = []
+        self.semi_axis = []
         for i in range(len(self.joysticks)):
-            self.joy_axis.append((self.joysticks[i].x, self.joysticks[i].y, self.joysticks[i].z, self.joysticks[i].rz))
+            self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1),numcap(self.joysticks[i].x, -1, 0),
+                               numcap(self.joysticks[i].y, 0, 1),numcap(self.joysticks[i].y, -1, 0),
+                               numcap(self.joysticks[i].z, 0, 1),numcap(self.joysticks[i].z, -1, 0),
+                               numcap(self.joysticks[i].rz, 0, 1),numcap(self.joysticks[i].rz, -1, 0))]
 
-    def setup(self,window):
+    def setup(self, window):
         window.push_handlers(self.keys)
 
     def is_pressed(self, action):
@@ -46,16 +51,16 @@ class Control:
             return True
         return False
 
-    def add_input(self, action, inputs):
+    def set_input(self, action, inputs):
         self.actions[action] = inputs
         self.action_state[action] = self.RELEASED
         pass
 
-    def add_joystick_input(self, action, inputs):
+    def set_joystick_input(self, action, inputs):
         self.joystick_actions[action] = inputs
         self.action_state[action] = self.RELEASED
 
-    def add_axis(self, action, axis):
+    def set_semi_axis(self, action, axis):
         self.axis_actions[action] = axis
 
     def get_axis(self, action):
@@ -67,7 +72,10 @@ class Control:
 
     def update(self, window):
         for i in range(len(self.joysticks)):
-            self.joy_axis[i] = (self.joysticks[i].x, self.joysticks[i].y, self.joysticks[i].z, self.joysticks[i].rz)
+            self.semi_axis = [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),
+                                numcap(self.joysticks[i].y, 0, 1), -numcap(self.joysticks[i].y, -1, 0),
+                                numcap(self.joysticks[i].z, 0, 1), -numcap(self.joysticks[i].z, -1, 0),
+                                numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0))]
         window.push_handlers(self.keys)
         for key, event in self.keys.items():
             for action, input in self.actions.items():
