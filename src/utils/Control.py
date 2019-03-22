@@ -84,7 +84,6 @@ class Control:
                                 numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0),
                                 numcap(self.joysticks[i].hat_x, 0, 1), -numcap(self.joysticks[i].hat_x, -1, 0),
                                 numcap(self.joysticks[i].hat_y, 0, 1), -numcap(self.joysticks[i].hat_y, -1, 0))
-        print(self.semi_axis)
         window.push_handlers(self.keys)
         for key, event in self.keys.items():
             for action, input in self.actions.items():
