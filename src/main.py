@@ -15,7 +15,7 @@ gui.setup_initial_menu()
 space = pymunk.Space()
 Control.control.setup(main_window)
 
-players = [Player(1, 100, 100, 0, space)]
+#players = [Player(1, 100, 100, 0, space)]
 
 options = pymunk.pyglet_util.DrawOptions()
 
@@ -31,8 +31,8 @@ space.add(bounding_body, bounding_segments[0], bounding_segments[1],bounding_seg
 def update(dt):
     Control.control.update(main_window)
     gui.update()
-    for p in players:
-        p.update(dt)
+    #for p in players:
+    #    p.update(dt)
     space.step(dt)
 
 
@@ -41,8 +41,8 @@ def on_draw():
     main_window.clear()
     fps_display.draw()
     gui.draw()
-    for p in players:
-        p.draw()
+    #for p in players:
+    #    p.draw()
     #space.debug_draw(options)
 
 
