@@ -6,6 +6,10 @@ import tkinter.filedialog
 from pymunk.vec2d import Vec2d
 from src.tools.map_creator.toolbar import Toolbar
 from src.tools.map_creator import Mouse
+from src.tools.map_creator.ToolConsts import *
+
+
+
 class __Editor:
     def __init__(self):
         tkinter.Tk().withdraw()
@@ -20,6 +24,43 @@ class __Editor:
         self.move_last = (0,0)
         self.streets = []
         self.filepath = None
+        self.grid = None
+        self.grid_size = 120
+        self.grid_start = Vec2d(self.grid_size/2, self.grid_size/2)
+        self.make_grid()
+        self.grid_enabled = True
+
+    def get_grid_mouse(self):
+        if self.grid_enabled:
+            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x) % self.grid_size + self.grid_size/2,
+                         Mouse.mouse.position.y - (Mouse.mouse.position.y) % self.grid_size + self.grid_size/2)
+        return Mouse.mouse.position
+
+    def make_grid(self):
+        verts = []
+        color = []
+        x = self.grid_size/2
+        while x < WINDOW_WIDTH:
+            verts += [x, 0,
+                                x, WINDOW_HEIGHT]
+            color += [255, 255, 255, 100, 255, 255, 255, 100]
+            x += self.grid_size
+        y = self.grid_size/2
+        while y < WINDOW_HEIGHT:
+            verts += [0, y,
+                                 WINDOW_WIDTH, y]
+            color += [255, 255, 255, 100, 255, 255, 255, 100]
+            y += self.grid_size
+        self.grid = pyglet.graphics.vertex_list(len(verts)//2, ("v2f", verts), ("c4B", color))
+
+        pass
+
+    def draw_grid(self):
+        if self.grid is None:
+            return
+        self.grid.draw(pyglet.gl.GL_LINES)
+
+        pass
 
     def make_circle(self, pos_x, pos_y,radius):
         resolution = 32
@@ -28,7 +69,8 @@ class __Editor:
         for i in range(resolution):
             verts += [radius.x + pos_x, radius.y + pos_y]
             radius.rotate_degrees(360/resolution)
-        return pyglet.graphics.vertex_list(resolution, ('v2f', verts))
+        return verts
+        #return pyglet.graphics.vertex_list(resolution, ('v2f', verts))
 
     def update_draw_map(self):
         for street in self.streets:
@@ -45,13 +87,14 @@ class __Editor:
             self.streets.append(pyglet.graphics.vertex_list(4, ("v2f", (corner1.x, corner1.y,
                                                                         corner2.x, corner2.y,
                                                                         corner3.x, corner3.y,
-                                                                        corner4.x, corner4.y))))
+                                                                        corner4.x, corner4.y)),
+                                                            ("c3B", (128, 128, 128)*4)))
         for circle in self.circles:
             circle.delete()
         self.circles = []
         for cross in self.map.crossings:
             x,y = cross
-            self.circles.append(self.make_circle(x,y,self.map.STREET_WIDTH/2))
+            self.circles.append(pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x,y,self.map.STREET_WIDTH/2))))
         pass
 
     def draw_map(self):
@@ -73,7 +116,7 @@ class __Editor:
             self.hover_indicator = None
         if self.is_hover is not None:
             x, y = self.map.crossings[self.is_hover]
-            self.hover_indicator = self.make_circle(x, y, 0.6 * self.map.STREET_WIDTH)
+            self.hover_indicator = pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x, y, 0.6 * self.map.STREET_WIDTH)), ("c3B", (125, 175, 255)*32))
 
     def update_link_indicator(self):
         resolution = 32
@@ -109,22 +152,26 @@ class __Editor:
             verts = []
             for vector in vectors:
                 verts += [vector.x + begin.x, vector.y+begin.y]
-            self.link_indicator = pyglet.graphics.vertex_list(resolution+2, ('v2f', verts))
+            if self.is_linking is not None:
+                self.link_indicator = pyglet.graphics.vertex_list(resolution+2, ('v2f', verts), ("c3B", (50,200,100)*(resolution+2)))
+            else:
+                self.link_indicator = pyglet.graphics.vertex_list(resolution + 2, ('v2f', verts),
+                                                                  ("c3B", (220, 60, 30) * (resolution + 2)))
 
     def update(self, dt):
         self.check_mouse_over()
 
         if self.is_moving is not None:
-            self.map.crossings[self.is_moving] = (Mouse.mouse.position.x, Mouse.mouse.position.y)
+            self.map.crossings[self.is_moving] = (self.get_grid_mouse().x, self.get_grid_mouse().y)
             if Mouse.mouse.is_just_released(0):
                 is_move_valid = True
-                if Toolbar.toolbar.is_hover or not (0 < Mouse.mouse.position.x < 960 and 0 < Mouse.mouse.position.y < 600):
+                if Toolbar.toolbar.is_hover or not (0 < self.get_grid_mouse().x < WINDOW_WIDTH and 0 < self.get_grid_mouse().y < WINDOW_HEIGHT):
                     print("invalid move, invalid cursor position at ", Mouse.mouse.position.x, ", ", Mouse.mouse.position.y)
                     is_move_valid = False
                 for i in range(len(self.map.crossings)):
                     if i != self.is_moving:
                         cross_pos = Vec2d(self.map.crossings[i])
-                        if cross_pos.get_distance(Mouse.mouse.position) < self.map.STREET_WIDTH:
+                        if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
                             print("invalid move")
                             is_move_valid = False
                 if not is_move_valid:
@@ -161,10 +208,10 @@ class __Editor:
                         is_add_valid = True
                         for cross in self.map.crossings:
                             cross_pos = Vec2d(cross)
-                            if cross_pos.get_distance(Mouse.mouse.position) < self.map.STREET_WIDTH:
+                            if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
                                 is_add_valid = False
                         if is_add_valid:
-                            self.map.crossings.append((Mouse.mouse.position.x, Mouse.mouse.position.y))
+                            self.map.crossings.append((self.get_grid_mouse().x, self.get_grid_mouse().y))
                 if Toolbar.toolbar.selected.tool == "remove":
                     self.is_moving = None
                     self.is_linking = None
@@ -211,6 +258,7 @@ class __Editor:
             self.hover_indicator.draw(pyglet.gl.GL_LINE_LOOP)
         if self.link_indicator:
             self.link_indicator.draw(pyglet.gl.GL_LINE_LOOP)
+        self.draw_grid()
 
     def open(self):
         print("opening a file")
@@ -219,10 +267,6 @@ class __Editor:
         if self.filepath.endswith(".pickle"):
             with open(self.filepath, "rb") as f:
                 self.map = pickle.load(f)
-        self.map.STREET_WIDTH = 30
-        for cross in self.map.crossings:
-            x, y = cross
-            self.circles.append(self.make_circle(x, y,self.map.STREET_WIDTH/2))
 
     def save(self):
         if self.filepath is None or self.filepath == "":

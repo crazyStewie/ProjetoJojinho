@@ -6,10 +6,10 @@ from pymunk.vec2d import Vec2d
 class Player:
     def __init__(self, player_id, pos_x, pos_y, rotation,  space):
         self.MASS = 10
-        self.MAX_ACCEL = 20
+        self.MAX_ACCEL = 30
         self.TAN_BREAK_FACTOR = 1/20
         self.LAT_BREAK_FACTOR = 20
-        self.MAX_TURN = 0.2
+        self.MAX_TURN = 0.6
         self.STEER_SPEED = 2.4
 
         self.position = Vec2d(0, 0)
@@ -93,7 +93,7 @@ class Player:
 
         # updating graphics
         self.sprite.position = (self.body.position.x, self.body.position.y)
-        self.sprite.rotation = -self.body.angle*57.2957795131
+        self.sprite.rotation = -self.body.angle*57.2957795131  # Radians to degrees convertion
         pass
 
     def draw(self):

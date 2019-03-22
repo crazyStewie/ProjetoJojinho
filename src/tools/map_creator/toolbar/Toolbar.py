@@ -3,6 +3,8 @@ import pyglet
 from src.tools.map_creator.toolbar.ToolItem import ToolItem
 from src.tools.map_creator import Mouse
 from src.tools.map_creator import Editor
+from src.tools.map_creator.ToolConsts import *
+
 
 class __ToolBar:
     def __init__(self, pos_x, pos_y):
@@ -89,4 +91,4 @@ class __ToolBar:
             self.selection_sprite.draw()
 
 
-toolbar = __ToolBar(480,16)
+toolbar = __ToolBar(WINDOW_WIDTH/2, 16)

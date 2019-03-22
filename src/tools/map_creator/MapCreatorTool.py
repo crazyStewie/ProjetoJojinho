@@ -2,12 +2,12 @@ from src.game_elements.Map import Map
 from src.tools.map_creator.toolbar import Toolbar
 from src.tools.map_creator import Editor
 from src.tools.map_creator import Mouse
+from src.tools.map_creator.ToolConsts import *
 import pickle
 import pyglet
 from pymunk.vec2d import Vec2d
 
-map_creator_window = pyglet.window.Window(width=960, height=600)
-
+map_creator_window = pyglet.window.Window(width=WINDOW_WIDTH, height=WINDOW_HEIGHT, fullscreen=True)
 #with open("../../../assets/levels/test_level.pickle", "wb") as f:
 #    pickle.dump(game_map, f, pickle.HIGHEST_PROTOCOL)
 
@@ -50,8 +50,6 @@ def update(dt):
     Mouse.mouse.update(dt)
     Toolbar.toolbar.update(dt)
     Editor.editor.update(dt)
-    if Mouse.mouse.is_just_pressed(0):
-        print("mouse pressed")
     pass
 
 
