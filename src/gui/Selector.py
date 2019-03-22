@@ -4,23 +4,26 @@ from src.utils import Control
 
 
 class Selector:
-    def __init__(self, type_, pos):
+    def __init__(self, type_, pos, value=None):
         self.x = pos[0]
         self.y = pos[1]
         self.is_focused = False
         self.type = type_  # type should be "level" or "players"
-        if self.type == "level":
-            self.value = 1
-        elif self.type == "players":
-            self.value = 2
+        if value is None:
+            if self.type == "level":
+                self.value = 1
+            elif self.type == "players":
+                self.value = 2
+        else:
+            self.value = value
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
         self.label = pyglet.text.Label(text=self.type.capitalize(),
                                        x=self.x, y=self.y+30, anchor_x="center", anchor_y="center",
-                                       color=(0, 0, 0, 255))
+                                       color=(0, 0, 0, 255), font_size=20)
         self.value_label = pyglet.text.Label(text=str(self.value),
                                              x=self.x, y=self.y, anchor_x="center", anchor_y="center",
-                                             color=(0, 0, 0, 255))
+                                             color=(0, 0, 0, 255), font_size=20)
         default_image = pyglet.resource.image("selector_default.png")
         default_image.anchor_x = default_image.width // 2
         default_image.anchor_y = default_image.height // 2

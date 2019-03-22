@@ -16,11 +16,10 @@ def draw_street(map_, street):
     corner2 = end + map_.STREET_WIDTH/2*Vec2d((math.cos(diff_angle+math.pi/2)), math.sin(diff_angle+math.pi/2))
     corner3 = end + map_.STREET_WIDTH/2*Vec2d((math.cos(diff_angle-math.pi/2)), math.sin(diff_angle-math.pi/2))
     corner4 = begin + map_.STREET_WIDTH/2*Vec2d((math.cos(diff_angle-math.pi/2)), math.sin(diff_angle-math.pi/2))
-    print(corner1, corner2, corner3, corner4)
     pyglet.graphics.draw(4, pyglet.gl.GL_QUADS, ("v2f", (corner1.x, corner1.y,
-                                                           corner2.x, corner2.y,
-                                                           corner3.x, corner3.y,
-                                                           corner4.x, corner4.y)))
+                                                         corner2.x, corner2.y,
+                                                         corner3.x, corner3.y,
+                                                         corner4.x, corner4.y)))
 
 
 @window.event
