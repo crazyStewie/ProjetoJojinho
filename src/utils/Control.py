@@ -21,17 +21,17 @@ class Control:
         self.RELEASED = 1
         self.JUST_PRESSED = 2
         self.JUST_RELEASED = 3
-        self.add_input("ui_up", [key.UP])
-        self.add_input("ui_down", [key.DOWN])
-        self.add_input("ui_left", [key.LEFT])
-        self.add_input("ui_right", [key.RIGHT])
-        self.add_input("ui_action", [key.ENTER])
+        self.set_input("ui_up", [key.UP])
+        self.set_input("ui_down", [key.DOWN])
+        self.set_input("ui_left", [key.LEFT])
+        self.set_input("ui_right", [key.RIGHT])
+        self.set_input("ui_action", [key.ENTER])
         self.semi_axis = []
         for i in range(len(self.joysticks)):
-            self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1),numcap(self.joysticks[i].x, -1, 0),
-                               numcap(self.joysticks[i].y, 0, 1),numcap(self.joysticks[i].y, -1, 0),
-                               numcap(self.joysticks[i].z, 0, 1),numcap(self.joysticks[i].z, -1, 0),
-                               numcap(self.joysticks[i].rz, 0, 1),numcap(self.joysticks[i].rz, -1, 0))]
+            self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), numcap(self.joysticks[i].x, -1, 0),
+                               numcap(self.joysticks[i].y, 0, 1), numcap(self.joysticks[i].y, -1, 0),
+                               numcap(self.joysticks[i].z, 0, 1), numcap(self.joysticks[i].z, -1, 0),
+                               numcap(self.joysticks[i].rz, 0, 1), numcap(self.joysticks[i].rz, -1, 0))]
 
     def setup(self, window):
         window.push_handlers(self.keys)
