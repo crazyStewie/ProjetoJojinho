@@ -29,9 +29,13 @@ class Control:
         self.semi_axis = []
         for i in range(len(self.joysticks)):
             self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),
-                               numcap(self.joysticks[i].y, 0, 1), -numcap(self.joysticks[i].y, -1, 0),
-                               numcap(self.joysticks[i].z, 0, 1), -numcap(self.joysticks[i].z, -1, 0),
-                               numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0))]
+                                numcap(self.joysticks[i].rx, 0, 1), -numcap(self.joysticks[i].rx, -1, 0),
+                                numcap(self.joysticks[i].y, 0, 1), -numcap(self.joysticks[i].y, -1, 0),
+                                numcap(self.joysticks[i].ry, 0, 1), -numcap(self.joysticks[i].ry, -1, 0),
+                                numcap(self.joysticks[i].z, 0, 1), -numcap(self.joysticks[i].z, -1, 0),
+                                numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0),
+                                numcap(self.joysticks[i].hat_x, 0, 1), -numcap(self.joysticks[i].hat_x, -1, 0),
+                                numcap(self.joysticks[i].hat_y, 0, 1), -numcap(self.joysticks[i].hat_y, -1, 0))]
 
     def setup(self, window):
         window.push_handlers(self.keys)
@@ -72,10 +76,15 @@ class Control:
 
     def update(self, window):
         for i in range(len(self.joysticks)):
-            self.semi_axis = [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),
+            self.semi_axis[i] = (numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),
+                                numcap(self.joysticks[i].rx, 0, 1), -numcap(self.joysticks[i].rx, -1, 0),
                                 numcap(self.joysticks[i].y, 0, 1), -numcap(self.joysticks[i].y, -1, 0),
+                                numcap(self.joysticks[i].ry, 0, 1), -numcap(self.joysticks[i].ry, -1, 0),
                                 numcap(self.joysticks[i].z, 0, 1), -numcap(self.joysticks[i].z, -1, 0),
-                                numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0))]
+                                numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0),
+                                numcap(self.joysticks[i].hat_x, 0, 1), -numcap(self.joysticks[i].hat_x, -1, 0),
+                                numcap(self.joysticks[i].hat_y, 0, 1), -numcap(self.joysticks[i].hat_y, -1, 0))
+        print(self.semi_axis)
         window.push_handlers(self.keys)
         for key, event in self.keys.items():
             for action, input in self.actions.items():
