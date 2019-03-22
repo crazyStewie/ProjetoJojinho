@@ -28,10 +28,10 @@ class Control:
         self.set_input("ui_action", [key.ENTER])
         self.semi_axis = []
         for i in range(len(self.joysticks)):
-            self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), numcap(self.joysticks[i].x, -1, 0),
-                               numcap(self.joysticks[i].y, 0, 1), numcap(self.joysticks[i].y, -1, 0),
-                               numcap(self.joysticks[i].z, 0, 1), numcap(self.joysticks[i].z, -1, 0),
-                               numcap(self.joysticks[i].rz, 0, 1), numcap(self.joysticks[i].rz, -1, 0))]
+            self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),
+                               numcap(self.joysticks[i].y, 0, 1), -numcap(self.joysticks[i].y, -1, 0),
+                               numcap(self.joysticks[i].z, 0, 1), -numcap(self.joysticks[i].z, -1, 0),
+                               numcap(self.joysticks[i].rz, 0, 1), -numcap(self.joysticks[i].rz, -1, 0))]
 
     def setup(self, window):
         window.push_handlers(self.keys)
