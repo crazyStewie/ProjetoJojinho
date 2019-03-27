@@ -1,8 +1,9 @@
 import pyglet
 import pickle
 from pymunk.vec2d import Vec2d
+from src.py_aux import consts
 
-window = pyglet.window.Window(width=960, height=600)
+window = pyglet.window.Window(width=consts.WINDOW_WIDTH, height=consts.WINDOW_HEIGHT, fullscreen=True)
 with open("../../assets/levels/test_level.pickle", "rb") as f:
     game_map = pickle.load(f)
 
@@ -15,7 +16,6 @@ def draw_street(map_, street):
     corner2 = end + map_.STREET_WIDTH / 2 * normal
     corner3 = end + map_.STREET_WIDTH / 2 * (-normal)
     corner4 = begin + map_.STREET_WIDTH / 2 * (-normal)
-    print(corner1, corner2, corner3, corner4)
     pyglet.graphics.draw(4, pyglet.gl.GL_QUADS, ("v2f", (corner1.x, corner1.y,
                                                          corner2.x, corner2.y,
                                                          corner3.x, corner3.y,

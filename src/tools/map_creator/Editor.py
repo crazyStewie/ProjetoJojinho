@@ -269,6 +269,7 @@ class __Editor:
                 self.map = pickle.load(f)
 
     def save(self):
+        self.map.generate_matrix()
         if self.filepath is None or self.filepath == "":
             self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
         if self.filepath != "":
@@ -277,6 +278,7 @@ class __Editor:
         pass
 
     def save_as(self):
+        self.map.generate_matrix()
         self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
         if self.filepath != "":
             with open (self.filepath, "wb") as f:
