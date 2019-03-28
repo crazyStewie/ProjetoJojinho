@@ -22,7 +22,8 @@ class __ToolBar:
                               pyglet.resource.image("remove_icon.png"),
                               pyglet.resource.image("link_icon.png"),
                               pyglet.resource.image("unlink_icon.png"),
-                              pyglet.resource.image("move_icon.png")]
+                              pyglet.resource.image("move_icon.png"),
+                              pyglet.resource.image("sidewalks_icon.png")]
 
         for img in self.button_images:
             img.anchor_x = img.width // 2
@@ -38,7 +39,7 @@ class __ToolBar:
         hover_image.anchor_y = hover_image.height // 2
         self.hover_sprite = pyglet.sprite.Sprite(hover_image)
 
-        self.button_types = ["open", "save", "save as", "add", "remove", "link", "unlink", "move"]
+        self.button_types = ["open", "save", "save as", "add", "remove", "link", "unlink", "move", "show sidewalks"]
         self.button_count = len(self.button_types)
 
         self.selected = None

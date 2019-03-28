@@ -25,10 +25,12 @@ class __Editor:
         self.streets = []
         self.filepath = None
         self.grid = None
-        self.grid_size = 120
+        self.grid_size = 150
         self.grid_start = Vec2d(self.grid_size/2, self.grid_size/2)
         self.make_grid()
         self.grid_enabled = True
+        self.showing_sidewalks = False
+        self.sidewalks = None
 
     def get_grid_mouse(self):
         if self.grid_enabled:
@@ -246,6 +248,12 @@ class __Editor:
                     if self.is_unlinking is None:
                         if self.is_hover is not None and Mouse.mouse.is_just_pressed(0):
                             self.is_unlinking = self.is_hover
+                if Toolbar.toolbar.selected.tool == "show sidewalks":
+                    self.showing_sidewalks = True
+                    self.generate_sidewalks()
+                else:
+                    self.showing_sidewalks = False
+
 
         self.update_hover_indicator()
         self.update_draw_map()
@@ -259,6 +267,9 @@ class __Editor:
         if self.link_indicator:
             self.link_indicator.draw(pyglet.gl.GL_LINE_LOOP)
         self.draw_grid()
+        if self.showing_sidewalks:
+            if self.sidewalks is not None:
+                self.sidewalks.draw(pyglet.gl.GL_LINES)
 
     def open(self):
         print("opening a file")
@@ -283,6 +294,19 @@ class __Editor:
         if self.filepath != "":
             with open (self.filepath, "wb") as f:
                 pickle.dump(self.map, f, pickle.HIGHEST_PROTOCOL)
+        pass
+
+    def generate_sidewalks(self):
+        self.map.generate_sidewalks()
+        if self.sidewalks is not None:
+            self.sidewalks.delete()
+        verts = []
+        for sidewalk in self.map.sidewalks:
+            verts += [self.map.sidewalk_crossings[sidewalk[0]][0],
+                      self.map.sidewalk_crossings[sidewalk[0]][1],
+                      self.map.sidewalk_crossings[sidewalk[1]][0],
+                      self.map.sidewalk_crossings[sidewalk[1]][1]]
+        self.sidewalks = pyglet.graphics.vertex_list(2*len(self.map.sidewalks), ("v2f", verts), ("c3B", (60, 127, 240)*2*len(self.map.sidewalks)))
         pass
 
 
