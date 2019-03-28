@@ -31,6 +31,7 @@ class __Editor:
         self.grid_enabled = True
         self.showing_sidewalks = False
         self.sidewalks = None
+        self.side_crossings = []
 
     def get_grid_mouse(self):
         if self.grid_enabled:
@@ -64,7 +65,7 @@ class __Editor:
 
         pass
 
-    def make_circle(self, pos_x, pos_y,radius):
+    def make_circle(self, pos_x, pos_y, radius):
         resolution = 32
         verts = []
         radius = Vec2d(radius, 0)
@@ -270,6 +271,8 @@ class __Editor:
         if self.showing_sidewalks:
             if self.sidewalks is not None:
                 self.sidewalks.draw(pyglet.gl.GL_LINES)
+                for cross in self.side_crossings:
+                    cross.draw(pyglet.gl.GL_POLYGON)
 
     def open(self):
         print("opening a file")
@@ -307,6 +310,13 @@ class __Editor:
                       self.map.sidewalk_crossings[sidewalk[1]][0],
                       self.map.sidewalk_crossings[sidewalk[1]][1]]
         self.sidewalks = pyglet.graphics.vertex_list(2*len(self.map.sidewalks), ("v2f", verts), ("c3B", (60, 127, 240)*2*len(self.map.sidewalks)))
+
+        for cross in self.side_crossings:
+            cross.delete()
+        self.side_crossings = []
+        for cross in self.map.sidewalk_crossings:
+            x, y = cross
+            self.side_crossings.append(pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x, y, 4))))
         pass
 
 
