@@ -8,7 +8,7 @@ class Map:
         self.crossings = []
         self.streets = []
         self.STREET_WIDTH = 75
-        self.SIDEWALK_WIDTH = 100
+        self.SIDEWALK_WIDTH = 85
         self.sidewalk_crossings = []
         self.sidewalks = []
         self.distances = []
@@ -38,86 +38,73 @@ class Map:
     def generate_sidewalks(self):
         self.sidewalk_crossings.clear()
         self.sidewalks.clear()
-        sidewalk_borders = []
-        for edge in self.streets:
-            street_direction = (Vec2d(self.crossings[edge[1]]) - Vec2d(self.crossings[edge[0]])).normalized()
-            normal_direction = street_direction.rotated_degrees(90)
-            sidewalk_borders.append((self.crossings[edge[0]]+normal_direction*self.SIDEWALK_WIDTH, street_direction))
-            sidewalk_borders.append((self.crossings[edge[0]]-normal_direction*self.SIDEWALK_WIDTH, street_direction))
-        intersections = []
-        for border_index in range(len(sidewalk_borders)):
-            for border2_index in range(len(sidewalk_borders)):
-                if border2_index <= border_index:
-                    continue
-                p1 = sidewalk_borders[border_index][0]
-                v1 = sidewalk_borders[border_index][1]
-                p2 = sidewalk_borders[border2_index][0]
-                v2 = sidewalk_borders[border2_index][1]
-                if abs(v1.x * v2.y - v2.x * v1.y - 0) > 1e-3:
-                    lambda2 = (v1.y * (p2[0] - p1[0]) - v1.x * (p2[1] - p1[1])) / (v1.x * v2.y - v2.x * v1.y)
-                    intersections.append((p2[0] + v2.x*lambda2, p2[1] + v2.y*lambda2))
-        angles = []
-        for i in range(len(self.crossings)):
-            angles += [[]]
+        vertices_streets = []
         for crossing_index in range(len(self.crossings)):
-            crossing_angles = []
-            for edge in self.streets:
-                if crossing_index in edge:
-                    crossing_angles.append(Vec2d(self.crossings[edge[(edge.index(crossing_index)+1) % 2]][0] -
-                                                 self.crossings[crossing_index][0],
-                                           self.crossings[edge[(edge.index(crossing_index)+1) % 2]][1] -
-                                                 self.crossings[crossing_index][1]).angle_degrees)
-            crossing_angles.sort()
-            for i in range(len(crossing_angles)):
-                angles[crossing_index].append(AngleHelper.angle_to_positive_degrees(
-                    crossing_angles[(i+1) % len(crossing_angles)] - crossing_angles[i]))
-        used_crossings = []
-        for i in range(len(intersections)):
-            used_crossings += [False]
-        for crossing_index in range(len(self.crossings)):
-            temp = []
-            for intersection in intersections:
-                for angle in angles[crossing_index]:
-                    if (abs(Vec2d(intersection).get_distance(Vec2d(self.crossings[crossing_index])) -
-                            self.SIDEWALK_WIDTH/math.sin(math.pi/180*angle/2)) < 1e-3 or
-                        abs(Vec2d(intersection).get_distance(Vec2d(self.crossings[crossing_index])) -
-                            self.SIDEWALK_WIDTH/math.cos(math.pi/180*angle/2)) < 1e-3) and \
-                            not used_crossings[intersections.index(intersection)]:
-                        used_crossings[intersections.index(intersection)] = True
-                        temp.append(((Vec2d(intersection) - Vec2d(self.crossings[crossing_index])).angle,
-                                     intersection))
-                        break
-            temp.sort()
-            for i in range(len(temp)):
-                self.sidewalk_crossings.append(temp[i][1])
-            for i in range(len(temp)):
-                if i < len(temp) - 1:
-                    self.sidewalks.append((self.sidewalk_crossings.index(temp[i][1]),
-                                           self.sidewalk_crossings.index(temp[i][1])+1))
-                else:
-                    self.sidewalks.append((self.sidewalk_crossings.index(temp[i][1]),
-                                           self.sidewalk_crossings.index(temp[i][1]) + 1 - len(temp)))
-        candidates = []
-        for i in range(len(self.streets)):
-            candidates += [[]]
-        for edge_index in range(len(self.streets)):
-            street_direction = (Vec2d(self.crossings[self.streets[edge_index][1]]) -
-                                Vec2d(self.crossings[self.streets[edge_index][0]])).normalized()
-            for crossing in self.sidewalk_crossings:
-                if abs((street_direction.dot(Vec2d(crossing) - Vec2d(self.crossings[self.streets[edge_index][0]])) *
-                        street_direction + Vec2d(self.crossings[self.streets[edge_index][0]])).get_distance(crossing) -
-                       self.SIDEWALK_WIDTH) < 1e-3 and \
-                        ((street_direction.dot(Vec2d(crossing) -
-                                               Vec2d(self.crossings[self.streets[edge_index][0]])) > 0 and
-                          street_direction.dot(Vec2d(crossing) -
-                                               Vec2d(self.crossings[self.streets[edge_index][1]])) < 0) or (
-                        street_direction.dot(Vec2d(crossing) -
-                                             Vec2d(self.crossings[self.streets[edge_index][0]])) < 0 and
-                        street_direction.dot(Vec2d(crossing) -
-                                             Vec2d(self.crossings[self.streets[edge_index][1]])) > 0)):
-                    normal_direction = street_direction.rotated_degrees(90)
-                    angle = normal_direction.dot((Vec2d(crossing) - Vec2d(self.crossings[self.streets[edge_index][0]])))
-                    candidates[edge_index].append((angle, self.sidewalk_crossings.index(crossing)))
-            candidates[edge_index].sort()
-            self.sidewalks.append((candidates[edge_index][0][1], candidates[edge_index][1][1]))
-            self.sidewalks.append((candidates[edge_index][2][1], candidates[edge_index][3][1]))
+            vertex_street_directions = []
+            for street in self.streets:
+                if crossing_index in street:
+                    vertex_street_directions.append(
+                        ((Vec2d(self.crossings[street[(street.index(crossing_index) + 1) % 2]]) -
+                          Vec2d(self.crossings[crossing_index])).normalized(), self.streets.index(street)))
+            vertex_street_directions.sort(key=lambda obj: obj[0].angle)
+            for direction_index in range(len(vertex_street_directions)):
+                temp_vec = vertex_street_directions[direction_index][0].rotated(AngleHelper.angle_to_positive(
+                    vertex_street_directions[direction_index][0].get_angle_between(
+                        vertex_street_directions[(direction_index + 1) % len(vertex_street_directions)][0]))/2)
+                temp_vec.length = self.SIDEWALK_WIDTH / \
+                    (2 * abs(temp_vec.dot(vertex_street_directions[direction_index][0].perpendicular())))
+                vertices_streets.append((Vec2d(self.crossings[crossing_index]) + temp_vec,
+                                         vertex_street_directions[direction_index][1],
+                                         vertex_street_directions[(direction_index + 1) %
+                                                                  len(vertex_street_directions)][1], crossing_index))
+        for element in vertices_streets:
+            self.sidewalk_crossings.append((element[0].x, element[0].y))
+        for element_index in range(len(vertices_streets)):
+            if element_index < len(vertices_streets) - 1:
+                if vertices_streets[element_index][3] == vertices_streets[element_index + 1][3]:
+                    self.sidewalks.append((self.sidewalk_crossings.index(vertices_streets[element_index][0]),
+                                           self.sidewalk_crossings.index(vertices_streets[element_index + 1][0])))
+                elif element_index > 0:
+                    if vertices_streets[element_index][3] == vertices_streets[element_index - 1][3]:
+                        lower = element_index - 1
+                        while lower > 0 and vertices_streets[lower][3] == vertices_streets[lower - 1][3]:
+                            lower -= 1
+                        if vertices_streets[lower][3] == vertices_streets[element_index][3]:
+                            self.sidewalks.append((self.sidewalk_crossings.index(vertices_streets[element_index][0]),
+                                                   self.sidewalk_crossings.index(vertices_streets[lower][0])))
+            elif element_index > 0:
+                if vertices_streets[element_index][3] == vertices_streets[element_index - 1][3]:
+                    lower = element_index - 1
+                    while lower > 0 and vertices_streets[lower][3] == vertices_streets[lower - 1][3]:
+                        lower -= 1
+                    if vertices_streets[lower][3] == vertices_streets[element_index][3]:
+                        self.sidewalks.append((self.sidewalk_crossings.index(vertices_streets[element_index][0]),
+                                               self.sidewalk_crossings.index(vertices_streets[lower][0])))
+        for street_index in range(len(self.streets)):
+            crossings = []
+            for vertex_street in vertices_streets:
+                if vertex_street[1] == street_index or vertex_street[2] == street_index:
+                    crossings.append(vertex_street)
+            street_direction = (Vec2d(self.crossings[self.streets[street_index][0]]) -
+                                Vec2d(self.crossings[self.streets[street_index][1]])).normalized()
+            if street_direction.perpendicular().dot(crossings[0][0] -
+                                                    Vec2d(self.crossings[self.streets[street_index][0]])) * \
+                    street_direction.perpendicular().dot(crossings[1][0] -
+                                                         Vec2d(self.crossings[self.streets[street_index][0]])) > 0:
+                self.sidewalks.append((self.sidewalk_crossings.index(crossings[0][0]),
+                                       self.sidewalk_crossings.index(crossings[1][0])))
+                self.sidewalks.append((self.sidewalk_crossings.index(crossings[2][0]),
+                                       self.sidewalk_crossings.index(crossings[3][0])))
+            elif street_direction.perpendicular().dot(crossings[0][0] -
+                                                      Vec2d(self.crossings[self.streets[street_index][0]])) * \
+                    street_direction.perpendicular().dot(crossings[2][0] -
+                                                         Vec2d(self.crossings[self.streets[street_index][0]])) > 0:
+                self.sidewalks.append((self.sidewalk_crossings.index(crossings[0][0]),
+                                       self.sidewalk_crossings.index(crossings[2][0])))
+                self.sidewalks.append((self.sidewalk_crossings.index(crossings[1][0]),
+                                       self.sidewalk_crossings.index(crossings[3][0])))
+            else:
+                self.sidewalks.append((self.sidewalk_crossings.index(crossings[0][0]),
+                                       self.sidewalk_crossings.index(crossings[3][0])))
+                self.sidewalks.append((self.sidewalk_crossings.index(crossings[1][0]),
+                                       self.sidewalk_crossings.index(crossings[2][0])))
