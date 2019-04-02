@@ -34,8 +34,9 @@ class Game:
         pass
 
     def update(self, dt):
-        if self.gui.mode == "game":
+        if self.gui.mode == "game" and self.current_state != IN_GAME:
             self.current_state = IN_GAME
+        if self.current_state == IN_GAME:
             self.player0.update(dt)
             self.player1.update(dt)
             self.space.step(dt)

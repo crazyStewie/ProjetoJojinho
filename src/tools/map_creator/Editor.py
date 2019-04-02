@@ -277,8 +277,7 @@ class __Editor:
     def open(self):
         print("opening a file")
         self.filepath = tkinter.filedialog.askopenfilename()
-        print(self.filepath)
-        if self.filepath.endswith(".pickle"):
+        if self.filepath is not None and self.filepath.endswith(".pickle"):
             with open(self.filepath, "rb") as f:
                 self.map = pickle.load(f)
 
@@ -286,9 +285,9 @@ class __Editor:
         self.map.generate_matrix()
         self.map.generate_sidewalks()
         self.map.calculate_distances()
-        if self.filepath is None or self.filepath == "":
+        if self.filepath is not None or self.filepath == "":
             self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
-        if self.filepath != "":
+        if self.filepath is not None and self.filepath != "":
             with open (self.filepath, "wb") as f:
                 pickle.dump(self.map, f, pickle.HIGHEST_PROTOCOL)
         pass
@@ -298,7 +297,9 @@ class __Editor:
         self.map.generate_sidewalks()
         self.map.calculate_distances()
         self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
-        if self.filepath != "":
+        print(self.filepath)
+        if self.filepath is not None and self.filepath != "":
+            print(self.filepath)
             with open (self.filepath, "wb") as f:
                 pickle.dump(self.map, f, pickle.HIGHEST_PROTOCOL)
         pass

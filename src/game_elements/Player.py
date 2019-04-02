@@ -23,7 +23,6 @@ class Player:
         graphics.anchor_x = graphics.width // 2
         graphics.anchor_y = graphics.height // 2
         self.sprite: pyglet.sprite.Sprite = pyglet.sprite.Sprite(graphics)
-        self.sprite.scale = 2
         self.body = pymunk.Body(self.MASS, pymunk.moment_for_box(self.MASS, (2*21, 2*9)))
         self.poly = pymunk.Poly.create_box(self.body, (2*21, 2*9))
         space.add(self.body,self.poly)
