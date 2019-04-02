@@ -16,6 +16,8 @@ class GUI:
         self.focus = -1
         self.window = window
         self.mode = ""
+        self.game_level = 1
+        self.num_players = 2
 
     def setup_initial_menu(self, params=None):
         self.mode = "initial"
@@ -96,6 +98,8 @@ class GUI:
 
     def setup_for_game(self):
         self.mode = "game"
+        self.game_level = self.active_elements[1].value
+        self.num_players = self.active_elements[2].value
         self.active_elements = []
         self.passive_elements = []
 
