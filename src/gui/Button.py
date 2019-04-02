@@ -59,7 +59,7 @@ class Button:
         self.label.draw()
 
     def start_action(self):
-        pass
+        self.gui.setup_initial_menu()
 
     def config_action(self):
         config_params = []
