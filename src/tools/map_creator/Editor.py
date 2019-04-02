@@ -13,6 +13,7 @@ from src.tools.map_creator.ToolConsts import *
 class __Editor:
     def __init__(self):
         tkinter.Tk().withdraw()
+        self.window = None
         self.map = Map()
         self.circles = []
         self.is_hover = None
@@ -32,6 +33,9 @@ class __Editor:
         self.showing_sidewalks = False
         self.sidewalks = None
         self.side_crossings = []
+
+    def set_window(self,window):
+        self.window = window
 
     def get_grid_mouse(self):
         if self.grid_enabled:
@@ -275,33 +279,44 @@ class __Editor:
                     cross.draw(pyglet.gl.GL_POLYGON)
 
     def open(self):
+        self.window.set_fullscreen(False)
+        self.window.set_visible(False)
         print("opening a file")
         self.filepath = tkinter.filedialog.askopenfilename()
-        print(self.filepath)
-        if self.filepath.endswith(".pickle"):
+        if self.filepath is not None and self.filepath.endswith(".pickle"):
             with open(self.filepath, "rb") as f:
                 self.map = pickle.load(f)
+        self.window.set_fullscreen(True)
+        self.window.set_visible(True)
 
     def save(self):
+        self.window.set_fullscreen(False)
+        self.window.set_visible(False)
         self.map.generate_matrix()
         self.map.generate_sidewalks()
         self.map.calculate_distances()
         if self.filepath is None or self.filepath == "":
             self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
-        if self.filepath != "":
+        if self.filepath is not None and self.filepath != "":
             with open (self.filepath, "wb") as f:
                 pickle.dump(self.map, f, pickle.HIGHEST_PROTOCOL)
-        pass
+        self.window.set_fullscreen(True)
+        self.window.set_visible(True)
 
     def save_as(self):
+        self.window.set_fullscreen(False)
+        self.window.set_visible(False)
         self.map.generate_matrix()
         self.map.generate_sidewalks()
         self.map.calculate_distances()
         self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
-        if self.filepath != "":
+        print(self.filepath)
+        if self.filepath is not None and self.filepath != "":
+            print(self.filepath)
             with open (self.filepath, "wb") as f:
                 pickle.dump(self.map, f, pickle.HIGHEST_PROTOCOL)
-        pass
+        self.window.set_fullscreen(True)
+        self.window.set_visible(True)
 
     def generate_sidewalks(self):
         self.map.generate_sidewalks()
