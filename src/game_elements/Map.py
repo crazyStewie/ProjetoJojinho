@@ -15,6 +15,7 @@ class Map:
         self.back_sprite = None
         self.front_sprite = None
         self.streets_length = []
+        self.sidewalks_length = []
 
     def generate_matrix(self):
         self.distances.clear()
@@ -116,3 +117,49 @@ class Map:
         self.streets_length.clear()
         for street in self.streets:
             self.streets_length.append((Vec2d(self.crossings[street[0]]) - Vec2d(self.crossings[street[1]])).length)
+        self.sidewalks_length.clear()
+        for sidewalk in self.sidewalks:
+            self.sidewalks_length.append((Vec2d(self.sidewalk_crossings[sidewalk[0]]) -
+                                          Vec2d(self.sidewalk_crossings[sidewalk[1]])).length)
+
+    def get_street_direction(self, street_index):
+        if street_index >= len(self.streets):
+            return
+        return (Vec2d(self.crossings[self.streets[street_index][1]]) -
+                Vec2d(self.crossings[self.streets[street_index][0]])).normalized()
+
+    def get_sidewalk_direction(self, sidewalk_index):
+        if sidewalk_index >= len(self.sidewalks):
+            return
+        return (Vec2d(self.sidewalk_crossings[self.sidewalks[sidewalk_index][1]]) -
+                Vec2d(self.sidewalk_crossings[self.sidewalks[sidewalk_index][0]])).normalized()
+
+    def street_first_crossing_index(self, street):
+        return self.crossings.index(self.crossings[self.streets[street][0]])
+
+    def street_second_crossing_index(self, street):
+        return self.crossings.index(self.crossings[self.streets[street][1]])
+
+    def sidewalk_first_crossing_index(self, sidewalk):
+        return self.sidewalk_crossings.index(self.sidewalk_crossings[self.sidewalks[sidewalk][0]])
+
+    def sidewalk_second_crossing_index(self, sidewalk):
+        return self.sidewalk_crossings.index(self.sidewalk_crossings[self.sidewalks[sidewalk][1]])
+
+    def street_first_crossing(self, street):
+        return self.crossings[self.streets[street][0]]
+
+    def street_second_crossing(self, street):
+        return self.crossings[self.streets[street][1]]
+
+    def sidewalk_first_crossing(self, sidewalk):
+        return self.sidewalk_crossings[self.sidewalks[sidewalk][0]]
+
+    def sidewalk_second_crossing(self, sidewalk):
+        return self.sidewalk_crossings[self.sidewalks[sidewalk][1]]
+
+    def draw_back(self):
+        pass
+
+    def draw_front(self):
+        pass
