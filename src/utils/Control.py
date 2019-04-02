@@ -31,6 +31,18 @@ class Control:
         self.set_semi_axis("Down0", (0, 4))
         self.set_semi_axis("Left0", (0, 1))
         self.set_semi_axis("Right0", (0, 0))
+        self.set_semi_axis("Up1", (1, 5))
+        self.set_semi_axis("Down1", (1, 4))
+        self.set_semi_axis("Left1", (1, 1))
+        self.set_semi_axis("Right1", (1, 0))
+        self.set_semi_axis("Up2", (2, 5))
+        self.set_semi_axis("Down2", (2, 4))
+        self.set_semi_axis("Left2", (2, 1))
+        self.set_semi_axis("Right2", (2, 0))
+        self.set_semi_axis("Up3", (3, 5))
+        self.set_semi_axis("Down3", (3, 4))
+        self.set_semi_axis("Left3", (3, 1))
+        self.set_semi_axis("Right3", (3, 0))
         self.semi_axis = []
         for i in range(len(self.joysticks)):
             self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),

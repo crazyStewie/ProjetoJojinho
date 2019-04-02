@@ -19,7 +19,8 @@ class Game:
         # debug
         self.space = pymunk.Space()
 
-        self.player = Player(0, 100, 100, 0, self.space)
+        self.player0 = Player(0, 100, 100, 0, self.space)
+        self.player1 = Player(1, 100, 100, 0, self.space)
 
         self.bounding_body = pymunk.Body(1, body_type=pymunk.Body.STATIC)
         self.bounding_segments = \
@@ -35,7 +36,8 @@ class Game:
     def update(self, dt):
         if self.gui.mode == "game":
             self.current_state = IN_GAME
-            self.player.update(dt)
+            self.player0.update(dt)
+            self.player1.update(dt)
             self.space.step(dt)
         if self.current_state == MAIN_MENU:
             self.gui.update(dt)
@@ -46,5 +48,6 @@ class Game:
         if self.current_state == MAIN_MENU:
             self.gui.draw()
         if self.current_state == IN_GAME:
-            self.player.draw()
+            self.player0.draw()
+            self.player1.draw()
         pass
