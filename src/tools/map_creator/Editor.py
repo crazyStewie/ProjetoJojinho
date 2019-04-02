@@ -284,6 +284,8 @@ class __Editor:
 
     def save(self):
         self.map.generate_matrix()
+        self.map.generate_sidewalks()
+        self.map.calculate_distances()
         if self.filepath is None or self.filepath == "":
             self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
         if self.filepath != "":
@@ -293,6 +295,8 @@ class __Editor:
 
     def save_as(self):
         self.map.generate_matrix()
+        self.map.generate_sidewalks()
+        self.map.calculate_distances()
         self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
         if self.filepath != "":
             with open (self.filepath, "wb") as f:
