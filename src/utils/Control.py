@@ -27,10 +27,10 @@ class Control:
         self.set_input("ui_left", [key.LEFT])
         self.set_input("ui_right", [key.RIGHT])
         self.set_input("ui_action", [key.ENTER])
-        self.set_semi_axis("Up1", (0, 5))
-        self.set_semi_axis("Down1", (0, 4))
-        self.set_semi_axis("Left1", (0, 1))
-        self.set_semi_axis("Right1", (0, 0))
+        self.set_semi_axis("Up0", (0, 5))
+        self.set_semi_axis("Down0", (0, 4))
+        self.set_semi_axis("Left0", (0, 1))
+        self.set_semi_axis("Right0", (0, 0))
         self.semi_axis = []
         for i in range(len(self.joysticks)):
             self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),

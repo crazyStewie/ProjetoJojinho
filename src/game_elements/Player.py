@@ -6,7 +6,7 @@ from pymunk.vec2d import Vec2d
 class Player:
     def __init__(self, player_id, pos_x, pos_y, rotation,  space):
         self.MASS = 10
-        self.MAX_SPEED = 250
+        self.MAX_SPEED = 350
         self.TAN_BREAK_FACTOR = 1/20
         self.LAT_BREAK_FACTOR = 20
         self.MAX_TURN = 0.6
@@ -18,13 +18,14 @@ class Player:
 
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
-        graphics = pyglet.resource.image("red_player.png")
+
+        graphics = pyglet.resource.image("Players/Player"+str(player_id)+".png")
         graphics.anchor_x = graphics.width // 2
         graphics.anchor_y = graphics.height // 2
         self.sprite: pyglet.sprite.Sprite = pyglet.sprite.Sprite(graphics)
-        self.sprite.scale = 1/8
-        self.body = pymunk.Body(self.MASS,pymunk.moment_for_box(self.MASS,(250/8,124/8)))
-        self.poly = pymunk.Poly.create_box(self.body,(250/8, 124/8))
+        self.sprite.scale = 2
+        self.body = pymunk.Body(self.MASS, pymunk.moment_for_box(self.MASS, (2*21, 2*9)))
+        self.poly = pymunk.Poly.create_box(self.body, (2*21, 2*9))
         space.add(self.body,self.poly)
         self.body.angle = rotation
         self.drive_angle = 0
@@ -32,9 +33,7 @@ class Player:
 
     def update(self, dt):
         local_velocity = self.body.velocity_at_local_point(Vec2d.zero()).rotated(-self.body.angle)
-        print(local_velocity)
         foward_velocity = local_velocity.dot(Vec2d(1, 0))
-        print(foward_velocity)
         front_wheel_velocity = self.body.velocity_at_local_point(Vec2d(130/8, 0)).rotated(-self.body.angle)
         back_wheel_velocity = self.body.velocity_at_local_point(Vec2d(-130/8, 0)).rotated(-self.body.angle)
         # handling controls
@@ -43,10 +42,6 @@ class Player:
         target_direction.y -= Control.control.get_axis("Down" + str(self.player_id))
         target_direction.x -= Control.control.get_axis("Left" + str(self.player_id))
         target_direction.x += Control.control.get_axis("Right" + str(self.player_id))
-        print("left = ", Control.control.get_axis("Left" + str(self.player_id)))
-        print("right = ", Control.control.get_axis("Right" + str(self.player_id)))
-        print("down = ", Control.control.get_axis("Down" + str(self.player_id)))
-        print("up = ", Control.control.get_axis("Up" + str(self.player_id)))
         if abs(target_direction.x) > abs(target_direction.y):
             target_direction = target_direction.normalized()*abs(target_direction.x)
         else:
@@ -68,14 +63,14 @@ class Player:
                 target_angle = -2*3.141592 + target_angle
             while target_angle < -3.141592:
                 target_angle = 2*3.141592 + target_angle
-            self.body.angular_velocity = 4*target_angle*self.ANGULAR_SPEED
+            self.body.angular_velocity = 2*target_angle*self.ANGULAR_SPEED*(foward_velocity + 0.1*self.MAX_SPEED)/self.MAX_SPEED
             if abs(self.body.angular_velocity) > self.ANGULAR_SPEED:
                 self.body.angular_velocity = self.body.angular_velocity*self.ANGULAR_SPEED/abs(self.body.angular_velocity)
         else:
             self.body.angular_velocity *= 0.8
         # updating graphics
         self.sprite.position = (self.body.position.x, self.body.position.y)
-        self.sprite.rotation = -self.body.angle*57.2957795131  # Radians to degrees convertion
+        self.sprite.rotation = 90-self.body.angle*57.2957795131  # Radians to degrees convertion
         pass
 
     def draw(self):
