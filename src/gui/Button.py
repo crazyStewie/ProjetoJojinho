@@ -59,7 +59,7 @@ class Button:
         self.label.draw()
 
     def start_action(self):
-        self.gui.setup_initial_menu()
+        self.gui.setup_for_game()
 
     def config_action(self):
         config_params = []

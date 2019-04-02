@@ -1,29 +1,32 @@
+from src.gui.GUI import GUI
+from src.py_aux import consts
+import pyglet
+
+MAIN_MENU = 0
+IN_GAME = 1
+POST_GAME = 3
+
+
 class Game:
-    MAIN_MENU = 0
-    IN_GAME = 1
-    POST_GAME = 3
-
-    def __init__(self):
-        self.current_state = self.MAIN_MENU
-        pass
-
-    def get_player_count(self):
-        pass
-
-    def get_player_fuel(self, player_id):
-        pass
-
-    def get_player_score(self, player_id):
+    def __init__(self, window):
+        self.current_state = MAIN_MENU
+        self.window = window
+        self.gui = GUI(self.window)
+        self.gui.setup_initial_menu()
         pass
 
     def get_game_state(self):
         pass
 
     def update(self, dt):
+        if self.gui.mode == "game":
+            self.current_state = IN_GAME
+        if self.current_state == MAIN_MENU:
+            self.gui.update(dt)
         pass
 
-    def draw(self, dt):
+    def draw(self):
+        self.window.clear()
+        if self.current_state == MAIN_MENU:
+            self.gui.draw()
         pass
-
-
-game_state = Game()
