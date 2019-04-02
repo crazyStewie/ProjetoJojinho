@@ -11,6 +11,7 @@ class Map:
         self.sidewalk_crossings = []
         self.sidewalks = []
         self.distances = []
+        self.spawn_positions = []
 
     def generate_matrix(self):
         self.distances.clear()
