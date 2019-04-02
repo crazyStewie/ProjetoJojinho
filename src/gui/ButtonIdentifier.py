@@ -35,7 +35,7 @@ class ButtonIdentifier:
         self.sprites = [self.default_sprite, self.pressed_sprite]
         self.sprite = self.sprites[self.pressed]
 
-    def update(self):
+    def update(self, dt):
         if self.is_focused:
             if self.pressed:
                 if self.joystick < len(Control.control.joysticks) and self.joystick != -1:

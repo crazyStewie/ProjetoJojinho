@@ -1,4 +1,3 @@
-import math
 from pymunk.vec2d import Vec2d
 from src.utils import AngleHelper
 
@@ -12,6 +11,10 @@ class Map:
         self.sidewalk_crossings = []
         self.sidewalks = []
         self.distances = []
+        self.spawn_positions = []
+        self.back_sprite = None
+        self.front_sprite = None
+        self.streets_length = []
 
     def generate_matrix(self):
         self.distances.clear()
@@ -108,3 +111,8 @@ class Map:
                                        self.sidewalk_crossings.index(crossings[3][0])))
                 self.sidewalks.append((self.sidewalk_crossings.index(crossings[1][0]),
                                        self.sidewalk_crossings.index(crossings[2][0])))
+
+    def calculate_distances(self):
+        self.streets_length.clear()
+        for street in self.streets:
+            self.streets_length.append((Vec2d(self.crossings[street[0]]) - Vec2d(self.crossings[street[1]])).length)

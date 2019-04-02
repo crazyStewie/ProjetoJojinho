@@ -16,13 +16,15 @@ class GUI:
         self.focus = -1
         self.window = window
         self.mode = ""
+        self.game_level = 1
+        self.num_players = 2
 
     def setup_initial_menu(self, params=None):
         self.mode = "initial"
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
         if params is not None:
-            self.active_elements = [Button("start", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 250])]),
+            self.active_elements = [Button("start", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 250])], gui=self),
                                     Selector("level", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 100])],
                                              value=params[0]),
                                     Selector("players", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, -50])],
@@ -31,7 +33,7 @@ class GUI:
                                            gui=self),
                                     Button("quit", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, -350])], self.window)]
         else:
-            self.active_elements = [Button("start", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 250])]),
+            self.active_elements = [Button("start", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 250])], gui=self),
                                     Selector("level", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 100])]),
                                     Selector("players", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, -50])]),
                                     Button("settings", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, -200])],
@@ -96,6 +98,8 @@ class GUI:
 
     def setup_for_game(self):
         self.mode = "game"
+        self.game_level = self.active_elements[1].value
+        self.num_players = self.active_elements[2].value
         self.active_elements = []
         self.passive_elements = []
 
@@ -107,7 +111,7 @@ class GUI:
                                                                   corner1[0], corner2[1],
                                                                   corner1[0], corner1[1])))
 
-    def update(self):
+    def update(self, dt):
         if Control.control.just_released("ui_up"):
             self.focus = max(0, self.focus - 1)
         elif Control.control.just_released("ui_down"):
@@ -118,20 +122,20 @@ class GUI:
                 elem.is_focused = True
             else:
                 elem.is_focused = False
-            elem.update()
+            elem.update(dt)
 
     def draw(self):
         for elem in self.passive_elements:
             elem.draw()
         for elem in self.active_elements:
             elem.draw()
-
-        corner1 = (self.active_elements[self.focus].x -
-                   self.active_elements[self.focus].default_sprite.width//2 - consts.BOX_MARGIN,
-                   self.active_elements[self.focus].y -
-                   self.active_elements[self.focus].default_sprite.height // 2 - consts.BOX_MARGIN)
-        corner2 = (self.active_elements[self.focus].x +
-                   self.active_elements[self.focus].default_sprite.width // 2 + consts.BOX_MARGIN,
-                   self.active_elements[self.focus].y +
-                   self.active_elements[self.focus].default_sprite.height // 2 + consts.BOX_MARGIN)
-        self.draw_box(corner1, corner2)
+        if len(self.active_elements) > 0:
+            corner1 = (self.active_elements[self.focus].x -
+                       self.active_elements[self.focus].default_sprite.width//2 - consts.BOX_MARGIN,
+                       self.active_elements[self.focus].y -
+                       self.active_elements[self.focus].default_sprite.height // 2 - consts.BOX_MARGIN)
+            corner2 = (self.active_elements[self.focus].x +
+                       self.active_elements[self.focus].default_sprite.width // 2 + consts.BOX_MARGIN,
+                       self.active_elements[self.focus].y +
+                       self.active_elements[self.focus].default_sprite.height // 2 + consts.BOX_MARGIN)
+            self.draw_box(corner1, corner2)
