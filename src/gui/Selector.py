@@ -35,24 +35,26 @@ class Selector:
         self.pulsing_sprite = \
             pyglet.sprite.Sprite(pulsing_image, pos[0], pos[1])
         self.sprite = self.default_sprite
-        self.timer_begin = 0
+        self.timer = 0
 
-    def update(self):
+    def update(self, dt):
         if self.is_focused:
             if Control.control.just_released("ui_left"):
-                self.timer_begin = time.perf_counter()
+                self.timer = 0
                 self.sprite = self.pulsing_sprite
                 self.decrement()
                 self.value_label.text = str(self.value)
             if Control.control.just_released("ui_right"):
-                self.timer_begin = time.perf_counter()
+                self.timer = 0
                 self.sprite = self.pulsing_sprite
                 self.increment()
                 self.value_label.text = str(self.value)
-            if time.perf_counter() - self.timer_begin >= 0.15:
+            if self.timer >= 0.15:
                 self.sprite = self.default_sprite
+            self.timer += dt
         else:
             self.sprite = self.default_sprite
+            self.timer = 0
 
     def draw(self):
         self.sprite.draw()

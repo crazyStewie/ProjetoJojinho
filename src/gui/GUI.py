@@ -107,7 +107,7 @@ class GUI:
                                                                   corner1[0], corner2[1],
                                                                   corner1[0], corner1[1])))
 
-    def update(self):
+    def update(self, dt):
         if Control.control.just_released("ui_up"):
             self.focus = max(0, self.focus - 1)
         elif Control.control.just_released("ui_down"):
@@ -118,7 +118,7 @@ class GUI:
                 elem.is_focused = True
             else:
                 elem.is_focused = False
-            elem.update()
+            elem.update(dt)
 
     def draw(self):
         for elem in self.passive_elements:

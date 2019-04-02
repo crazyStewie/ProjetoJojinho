@@ -1,4 +1,3 @@
-import math
 from pymunk.vec2d import Vec2d
 from src.utils import AngleHelper
 

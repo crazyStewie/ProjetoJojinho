@@ -35,7 +35,7 @@ class Button:
             self.pressed_sprite.scale_y = 0.7
         self.sprite = self.default_sprite
 
-    def update(self):
+    def update(self, dt):
         if self.is_focused:
             if Control.control.is_pressed("ui_action"):
                 self.sprite = self.pressed_sprite
