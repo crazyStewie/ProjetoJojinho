@@ -1,5 +1,10 @@
-class GameState:
+class Game:
+    MAIN_MENU = 0
+    IN_GAME = 1
+    POST_GAME = 3
+
     def __init__(self):
+        self.current_state = self.MAIN_MENU
         pass
 
     def get_player_count(self):
@@ -14,5 +19,11 @@ class GameState:
     def get_game_state(self):
         pass
 
+    def update(self, dt):
+        pass
 
-game_state = GameState()
+    def draw(self, dt):
+        pass
+
+
+game_state = Game()
