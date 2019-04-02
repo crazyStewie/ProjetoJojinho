@@ -12,6 +12,7 @@ class Control:
         self.joysticks = pyglet.input.get_joysticks()
         for joystick in self.joysticks:
             joystick.open()
+        print(len(self.joysticks)," joysticks were found")
         self.actions = {}
         self.joystick_actions= {}
         self.axis_actions = {}
@@ -26,6 +27,10 @@ class Control:
         self.set_input("ui_left", [key.LEFT])
         self.set_input("ui_right", [key.RIGHT])
         self.set_input("ui_action", [key.ENTER])
+        self.set_semi_axis("Up1", (0, 5))
+        self.set_semi_axis("Down1", (0, 4))
+        self.set_semi_axis("Left1", (0, 1))
+        self.set_semi_axis("Right1", (0, 0))
         self.semi_axis = []
         for i in range(len(self.joysticks)):
             self.semi_axis += [(numcap(self.joysticks[i].x, 0, 1), -numcap(self.joysticks[i].x, -1, 0),
@@ -69,8 +74,8 @@ class Control:
 
     def get_axis(self, action):
         joy_id, axis_id = self.axis_actions[action]
-        if joy_id < len(self.joy_axis):
-            this_joy = self.joy_axis[joy_id]
+        if joy_id < len(self.semi_axis):
+            this_joy = self.semi_axis[joy_id]
             return this_joy[axis_id]
         return 0
 
