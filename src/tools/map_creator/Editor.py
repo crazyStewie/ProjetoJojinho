@@ -295,7 +295,7 @@ class __Editor:
         self.map.generate_matrix()
         self.map.generate_sidewalks()
         self.map.calculate_distances()
-        if self.filepath is not None or self.filepath == "":
+        if self.filepath is None or self.filepath == "":
             self.filepath = tkinter.filedialog.asksaveasfilename(defaultextension=".pickle")
         if self.filepath is not None and self.filepath != "":
             with open (self.filepath, "wb") as f:
