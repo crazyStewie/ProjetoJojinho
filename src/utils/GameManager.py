@@ -6,19 +6,21 @@ from src.game_elements.Passerby import Passerby
 from pymunk.vec2d import Vec2d
 from src.py_aux import consts
 from src.game_elements.Map import Map
-PASSENGER_SPEED = 150
+from src.game_elements.Player import Player
+from src.gui import HUD
+PASSENGER_SPEED = 500
 
 
 class GameManager:
     def __init__(self, number_players, map_number):
         self.number_players = number_players
         self.map_number = map_number
-        self.map : Map = None
+        self.map: Map = None
         self.players = []
         self.passengers = []
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
-        for i in range(25):
+        for i in range(125):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
@@ -27,6 +29,9 @@ class GameManager:
             self.passengers.append(Passerby(random_sidewalk, random_position, random_direction,
                                             (position.x, position.y)))
         self.space = pymunk.Space()
+
+        for i in range(number_players):
+            self.players.append(Player(i, 100, 100+50*i, 0, self.space))
 
         self.bounding_body = pymunk.Body(1, body_type=pymunk.Body.STATIC)
         self.bounding_segments = \
@@ -41,9 +46,15 @@ class GameManager:
         self.space.add(self.bounding_body, self.bounding_segments[0], self.bounding_segments[1],
                        self.bounding_segments[2], self.bounding_segments[3])
 
+        self.HUDs = []
+        for player_index in range(len(self.players)):
+            self.HUDs.append(HUD.HUD(self.players[player_index], (consts.WINDOW_WIDTH/2 - len(self.players)/2 *
+                                                                  HUD.HUD_WIDTH + HUD.HUD_WIDTH*player_index, 0)))
+
     def update(self, dt):
         for player in self.players:
             player.update(dt)
+            player.fuel -= dt*0.05
         for passenger in self.passengers:
             passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
             if passenger.relative_position < 0:
@@ -80,6 +91,8 @@ class GameManager:
                        self.map.get_sidewalk_direction(passenger.sidewalk) * passenger.relative_position
             passenger.sprite.update(x=position.x, y=position.y)
         self.space.step(dt)
+        for HUD_ in self.HUDs:
+            HUD_.update(dt)
 
     def draw(self):
         self.map.draw_back()
@@ -87,3 +100,6 @@ class GameManager:
             passenger.sprite.draw()
         for player in self.players:
             player.draw()
+        for HUD_ in self.HUDs:
+            HUD_.draw()
+        self.map.draw_front()

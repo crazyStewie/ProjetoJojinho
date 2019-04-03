@@ -3,6 +3,7 @@ import pyglet
 import pymunk
 from pymunk.vec2d import Vec2d
 
+
 class Player:
     def __init__(self, player_id, pos_x, pos_y, rotation,  space):
         self.MASS = 10
@@ -30,9 +31,13 @@ class Player:
         self.drive_angle = 0
         self.body.position = Vec2d(pos_x, pos_y)
 
+        self.fuel = 1
+        self.money = 0
+        self.power_up = None
+
     def update(self, dt):
         local_velocity = self.body.velocity_at_local_point(Vec2d.zero()).rotated(-self.body.angle)
-        foward_velocity = local_velocity.dot(Vec2d(1, 0))
+        forward_velocity = local_velocity.dot(Vec2d(1, 0))
         front_wheel_velocity = self.body.velocity_at_local_point(Vec2d(130/8, 0)).rotated(-self.body.angle)
         back_wheel_velocity = self.body.velocity_at_local_point(Vec2d(-130/8, 0)).rotated(-self.body.angle)
         # handling controls
@@ -48,8 +53,8 @@ class Player:
         if target_direction.length < 0.1:
             target_direction = Vec2d.zero()
         impulse = Vec2d(0, 0)
-        if foward_velocity < self.MAX_SPEED:
-            impulse += dt*Vec2d(1, 0)*(self.MAX_SPEED - foward_velocity)*self.body.mass*target_direction.length
+        if forward_velocity < self.MAX_SPEED:
+            impulse += dt*Vec2d(1, 0)*(self.MAX_SPEED - forward_velocity)*self.body.mass*target_direction.length
         if impulse != Vec2d.zero():
             impulse += 4*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
         else:
@@ -62,14 +67,16 @@ class Player:
                 target_angle = -2*3.141592 + target_angle
             while target_angle < -3.141592:
                 target_angle = 2*3.141592 + target_angle
-            self.body.angular_velocity = 2*target_angle*self.ANGULAR_SPEED*(foward_velocity + 0.1*self.MAX_SPEED)/self.MAX_SPEED
+            self.body.angular_velocity = \
+                2*target_angle*self.ANGULAR_SPEED*(forward_velocity + 0.1*self.MAX_SPEED)/self.MAX_SPEED
             if abs(self.body.angular_velocity) > self.ANGULAR_SPEED:
-                self.body.angular_velocity = self.body.angular_velocity*self.ANGULAR_SPEED/abs(self.body.angular_velocity)
+                self.body.angular_velocity = \
+                    self.body.angular_velocity*self.ANGULAR_SPEED/abs(self.body.angular_velocity)
         else:
             self.body.angular_velocity *= 0.8
         # updating graphics
         self.sprite.position = (self.body.position.x, self.body.position.y)
-        self.sprite.rotation = 90-self.body.angle*57.2957795131  # Radians to degrees convertion
+        self.sprite.rotation = 90-self.body.angle*57.2957795131  # Radians to degrees conversion
         pass
 
     def draw(self):

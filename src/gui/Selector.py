@@ -1,4 +1,3 @@
-import time
 import pyglet
 from src.utils import Control
 
