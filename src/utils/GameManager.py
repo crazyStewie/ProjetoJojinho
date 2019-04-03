@@ -5,20 +5,21 @@ from random import random
 from src.game_elements.Passerby import Passerby
 from pymunk.vec2d import Vec2d
 from src.py_aux import consts
-
-PASSENGER_SPEED = 200
+from src.game_elements.Map import Map
+PASSENGER_SPEED = 150
 
 
 class GameManager:
     def __init__(self, number_players, map_number):
         self.number_players = number_players
         self.map_number = map_number
-        self.map = None
+        self.map : Map = None
         self.players = []
         self.passengers = []
-        with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
+        #with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
+        with open("../assets/levels/test_level.pickle", "rb") as f:
             self.map = pickle.load(f)
-        for i in range(1):
+        for i in range(25):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
@@ -45,45 +46,37 @@ class GameManager:
         for player in self.players:
             player.update(dt)
         for passenger in self.passengers:
-            if passenger.relative_position + PASSENGER_SPEED * dt * passenger.direction < 0:
+            passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
+            if passenger.relative_position < 0:
                 possibilities = []
-                for sidewalk in self.map.sidewalks:
-                    if self.map.sidewalk_first_crossing_index(passenger.sidewalk) in sidewalk:
-                        possibilities.append(sidewalk)
+                current_crossing = self.map.sidewalks[passenger.sidewalk][0]
+                for i in range(len(self.map.sidewalks)):
+                    if current_crossing in self.map.sidewalks[i] and i != passenger.sidewalk:
+                        possibilities.append(i)
                 random_index = math.floor(random()*len(possibilities))
-                print(passenger.sidewalk)
-                print(possibilities[random_index])
-                if possibilities[random_index].index(self.map.sidewalk_first_crossing_index(passenger.sidewalk)) == 0:
-                    print(1)
+                new_sidewalk = possibilities[random_index]
+                if current_crossing == self.map.sidewalks[new_sidewalk][0]:
                     passenger.relative_position = 0
                     passenger.direction = 1
                 else:
-                    print(2)
-                    passenger.relative_position = self.map.sidewalks_length[passenger.sidewalk]
+                    passenger.relative_position = self.map.sidewalks_length[new_sidewalk]
                     passenger.direction = -1
-                passenger.sidewalk = self.map.sidewalks.index(possibilities[random_index])
-                print(passenger.sidewalk)
-            elif passenger.relative_position + PASSENGER_SPEED * dt * passenger.direction > \
-                    self.map.sidewalks_length[passenger.sidewalk]:
+                passenger.sidewalk = new_sidewalk
+            elif passenger.relative_position > self.map.sidewalks_length[passenger.sidewalk]:
                 possibilities = []
-                for sidewalk in self.map.sidewalks:
-                    if self.map.sidewalk_second_crossing_index(passenger.sidewalk) in sidewalk:
-                        possibilities.append(sidewalk)
+                current_crossing = self.map.sidewalks[passenger.sidewalk][1]
+                for i in range(len(self.map.sidewalks)):
+                    if current_crossing in self.map.sidewalks[i] and i != passenger.sidewalk:
+                        possibilities.append(i)
                 random_index = math.floor(random() * len(possibilities))
-                print(passenger.sidewalk)
-                print(possibilities[random_index])
-                if possibilities[random_index].index(self.map.sidewalk_second_crossing_index(passenger.sidewalk)) == 0:
-                    print(3)
+                new_sidewalk = possibilities[random_index]
+                if current_crossing == self.map.sidewalks[new_sidewalk][0]:
                     passenger.relative_position = 0
                     passenger.direction = 1
                 else:
-                    print(4)
-                    passenger.relative_position = self.map.sidewalks_length[passenger.sidewalk]
+                    passenger.relative_position = self.map.sidewalks_length[new_sidewalk]
                     passenger.direction = -1
-                passenger.sidewalk = self.map.sidewalks.index(possibilities[random_index])
-                print(passenger.sidewalk)
-            else:
-                passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
+                passenger.sidewalk = new_sidewalk
             position = Vec2d(self.map.sidewalk_first_crossing(passenger.sidewalk)) + \
                        self.map.get_sidewalk_direction(passenger.sidewalk) * passenger.relative_position
             passenger.sprite.update(x=position.x, y=position.y)
