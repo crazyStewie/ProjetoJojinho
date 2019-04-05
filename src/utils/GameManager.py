@@ -18,8 +18,8 @@ class GameManager:
         self.map: Map = None
         self.players = []
         self.passengers = []
-        # with open("../assets/levels/test_level.pickle", "rb") as f:
-        with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
+        with open("../assets/levels/test_level.pickle", "rb") as f:
+            # with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
         for i in range(50):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
@@ -54,10 +54,10 @@ class GameManager:
             self.HUDs.append(HUD.HUD(self.players[player_index], (consts.WINDOW_WIDTH/2 - len(self.players)/2 *
                                                                   HUD.HUD_WIDTH + HUD.HUD_WIDTH*player_index, 0)))
         self.options = pymunk.pyglet_util.DrawOptions()
+
     def update(self, dt):
         for player in self.players:
             player.update(dt)
-            player.fuel -= dt*0.05
         for passenger in self.passengers:
             passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
             if passenger.relative_position < 0:
@@ -103,7 +103,8 @@ class GameManager:
             passenger.sprite.draw()
         for player in self.players:
             player.draw()
-        for HUD_ in self.HUDs:
-            HUD_.draw()
         self.map.draw_front()
         self.space.debug_draw(self.options)
+        for HUD_ in self.HUDs:
+            HUD_.draw()
+

@@ -16,7 +16,7 @@ class Player:
         self.position = Vec2d(0, 0)
         self.rotation = 0
         self.player_id = player_id
-
+        self.FUEL_SCALE = 0.002
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
 
@@ -26,7 +26,7 @@ class Player:
         self.sprite: pyglet.sprite.Sprite = pyglet.sprite.Sprite(graphics)
         self.body = pymunk.Body(self.MASS, pymunk.moment_for_box(self.MASS, (2*21, 2*9)))
         self.poly = pymunk.Poly.create_box(self.body, (2*21, 2*9))
-        space.add(self.body,self.poly)
+        space.add(self.body, self.poly)
         self.body.angle = rotation
         self.drive_angle = 0
         self.body.position = Vec2d(pos_x, pos_y)
@@ -55,13 +55,17 @@ class Player:
         impulse = Vec2d(0, 0)
         if forward_velocity < self.MAX_SPEED:
             impulse += dt*Vec2d(1, 0)*(self.MAX_SPEED - forward_velocity)*self.body.mass*target_direction.length
+            self.fuel -= impulse.length*self.FUEL_SCALE/self.MAX_SPEED
+            if self.fuel <= 0:
+                self.fuel = 0
+                impulse = Vec2d.zero()
         if impulse != Vec2d.zero():
             impulse += 6*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
         else:
             impulse += -6*dt*local_velocity*self.body.mass
         self.body.apply_impulse_at_local_point(impulse, Vec2d.zero())
 
-        if target_direction.length > 0.1:
+        if target_direction.length > 0.1 and self.fuel > 0:
             target_angle = target_direction.angle-self.body.angle
             while target_angle > 3.141592:
                 target_angle = -2*3.141592 + target_angle
