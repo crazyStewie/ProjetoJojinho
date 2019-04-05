@@ -18,8 +18,8 @@ class GameManager:
         self.map: Map = None
         self.players = []
         self.passengers = []
-        with open("../assets/levels/test_level.pickle", "rb") as f:
-            # with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
+        #with open("../assets/levels/test_level.pickle", "rb") as f:
+        with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
         for i in range(50):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))

@@ -355,10 +355,15 @@ class __Editor:
         self.window.set_fullscreen(False)
         self.window.set_visible(False)
         print("opening a file")
+        tmp_map = None
         self.filepath = tkinter.filedialog.askopenfilename()
         if self.filepath is not None and self.filepath.endswith(".pickle"):
             with open(self.filepath, "rb") as f:
-                self.map = pickle.load(f)
+                tmp_map = pickle.load(f)
+        if tmp_map is not None:
+            self.map = Map()
+            self.map.crossings = tmp_map.crossings
+            self.map.streets = tmp_map.streets
         self.window.set_fullscreen(True)
         self.window.set_visible(True)
 
