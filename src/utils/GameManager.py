@@ -8,7 +8,7 @@ from src.py_aux import consts
 from src.game_elements.Map import Map
 from src.game_elements.Player import Player
 from src.gui import HUD
-PASSENGER_SPEED = 500
+PASSENGER_SPEED = 75
 
 
 class GameManager:
@@ -18,9 +18,10 @@ class GameManager:
         self.map: Map = None
         self.players = []
         self.passengers = []
+        # with open("../assets/levels/test_level.pickle", "rb") as f:
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
-        for i in range(125):
+        for i in range(50):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
@@ -45,12 +46,14 @@ class GameManager:
                                    pymunk.vec2d.Vec2d(0, 0), 4))
         self.space.add(self.bounding_body, self.bounding_segments[0], self.bounding_segments[1],
                        self.bounding_segments[2], self.bounding_segments[3])
-
+        self.map.generate_body()
+        if self.map.col_body is not None:
+            self.space.add(self.map.col_body, self.map.col_shapes)
         self.HUDs = []
         for player_index in range(len(self.players)):
             self.HUDs.append(HUD.HUD(self.players[player_index], (consts.WINDOW_WIDTH/2 - len(self.players)/2 *
                                                                   HUD.HUD_WIDTH + HUD.HUD_WIDTH*player_index, 0)))
-
+        self.options = pymunk.pyglet_util.DrawOptions()
     def update(self, dt):
         for player in self.players:
             player.update(dt)
@@ -103,3 +106,4 @@ class GameManager:
         for HUD_ in self.HUDs:
             HUD_.draw()
         self.map.draw_front()
+        self.space.debug_draw(self.options)

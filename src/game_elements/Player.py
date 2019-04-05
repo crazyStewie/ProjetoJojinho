@@ -56,9 +56,9 @@ class Player:
         if forward_velocity < self.MAX_SPEED:
             impulse += dt*Vec2d(1, 0)*(self.MAX_SPEED - forward_velocity)*self.body.mass*target_direction.length
         if impulse != Vec2d.zero():
-            impulse += 4*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
+            impulse += 6*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
         else:
-            impulse += -4*dt*local_velocity*self.body.mass
+            impulse += -6*dt*local_velocity*self.body.mass
         self.body.apply_impulse_at_local_point(impulse, Vec2d.zero())
 
         if target_direction.length > 0.1:
