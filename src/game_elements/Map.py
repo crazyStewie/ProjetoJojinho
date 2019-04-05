@@ -27,6 +27,8 @@ class Map:
             self.col_shapes += [pymunk.shapes.Segment(self.col_body,
                                                       Vec2d(self.collision_vertices[edge[0]]),
                                                       Vec2d(self.collision_vertices[edge[1]]), 8)]
+        for cvertex in self.collision_vertices:
+            self.col_shapes += [pymunk.shapes.Circle(self.col_body, 8, cvertex)]
 
     def generate_matrix(self):
         self.distances.clear()
