@@ -12,6 +12,9 @@ from src.utils import Control
 MAP_MODE = 0
 COL_MODE = 1
 
+# Use UP and DOWN to change the grid size (by a factor of 2)
+# Use space to change between map and collision edition (Hover over a vertex to see witch mode is active)
+
 
 class __Editor:
     def __init__(self):
@@ -132,7 +135,7 @@ class __Editor:
         self.circles = []
         for cross in self.map.crossings:
             x,y = cross
-            self.circles.append(pyglet.graphics.vertex_list(8, ("v2f", self.make_circle(x, y, self.map.STREET_WIDTH/2, 8))))
+            self.circles.append(pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x, y, self.map.STREET_WIDTH/2, 32))))
         pass
 
     def draw_map(self):
@@ -189,7 +192,7 @@ class __Editor:
             direction = (end-begin)
             angle = direction.angle
             vectors = []
-            radius = Vec2d(0, 0.8*hover_radius)
+            radius = Vec2d(0, 1.1*hover_radius)
             vectors.append(radius.rotated(angle))
             for i in range(resolution//2):
                 radius.rotate_degrees(360/resolution)
