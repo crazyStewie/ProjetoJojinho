@@ -3,12 +3,14 @@ from src.tools.map_creator.toolbar import Toolbar
 from src.tools.map_creator import Editor
 from src.tools.map_creator import Mouse
 from src.tools.map_creator.ToolConsts import *
+from src.utils import Control
 import pickle
 import pyglet
 from pymunk.vec2d import Vec2d
 
 map_creator_window = pyglet.window.Window(width=WINDOW_WIDTH, height=WINDOW_HEIGHT, fullscreen=True)
 Editor.editor.set_window(map_creator_window)
+Control.control.setup(map_creator_window)
 #with open("../../../assets/levels/test_level.pickle", "wb") as f:
 #    pickle.dump(game_map, f, pickle.HIGHEST_PROTOCOL)
 
@@ -48,6 +50,7 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 
 
 def update(dt):
+    Control.control.update(map_creator_window)
     Mouse.mouse.update(dt)
     Toolbar.toolbar.update(dt)
     Editor.editor.update(dt)

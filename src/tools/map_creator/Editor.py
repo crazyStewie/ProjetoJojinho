@@ -7,7 +7,10 @@ from pymunk.vec2d import Vec2d
 from src.tools.map_creator.toolbar import Toolbar
 from src.tools.map_creator import Mouse
 from src.tools.map_creator.ToolConsts import *
+from src.utils import Control
 
+MAP_MODE = 0
+COL_MODE = 1
 
 
 class __Editor:
@@ -33,8 +36,35 @@ class __Editor:
         self.showing_sidewalks = False
         self.sidewalks = None
         self.side_crossings = []
+        self.mode = MAP_MODE
+        self.crossings = self.map.crossings
+        self.edges = self.map.streets
+        self.col_edges_vlist = None
+        self.col_vertices_vlists = []
+        self.collision_marker_size = 12
+        Control.control.set_input("grid_plus", [pyglet.window.key.UP])
+        Control.control.set_input("grid_minus", [pyglet.window.key.DOWN])
+        Control.control.set_input("change_mode", [pyglet.window.key.SPACE])
 
-    def set_window(self,window):
+    def update_collision_draw(self):
+        if self.col_edges_vlist is not None:
+            self.col_edges_vlist.delete()
+            self.col_edges_vlist = None
+        for col_vlist in self.col_vertices_vlists:
+            col_vlist.delete()
+        self.col_vertices_vlists = []
+        verts = []
+        for edge in self.map.collision_edges:
+            verts += [self.map.collision_vertices[edge[0]][0],
+                      self.map.collision_vertices[edge[0]][1],
+                      self.map.collision_vertices[edge[1]][0],
+                      self.map.collision_vertices[edge[1]][1]]
+            self.col_edges_vlist = pyglet.graphics.vertex_list(len(verts)//2, ("v2f", verts), ("c3B", (240, 120, 90)*(len(verts)//2)))
+        verts = []
+        for vertex in self.map.collision_vertices:
+            self.col_vertices_vlists += [pyglet.graphics.vertex_list(8, ("v2f", self.make_circle(vertex[0], vertex[1], self.collision_marker_size/2,8)))]
+
+    def set_window(self, window):
         self.window = window
 
     def get_grid_mouse(self):
@@ -44,6 +74,9 @@ class __Editor:
         return Mouse.mouse.position
 
     def make_grid(self):
+        if self.grid is not None:
+            self.grid.delete()
+            self.grid = None
         verts = []
         color = []
         x = self.grid_size/2
@@ -54,8 +87,7 @@ class __Editor:
             x += self.grid_size
         y = self.grid_size/2
         while y < WINDOW_HEIGHT:
-            verts += [0, y,
-                                 WINDOW_WIDTH, y]
+            verts += [0, y, WINDOW_WIDTH, y]
             color += [255, 255, 255, 100, 255, 255, 255, 100]
             y += self.grid_size
         self.grid = pyglet.graphics.vertex_list(len(verts)//2, ("v2f", verts), ("c4B", color))
@@ -69,8 +101,7 @@ class __Editor:
 
         pass
 
-    def make_circle(self, pos_x, pos_y, radius):
-        resolution = 32
+    def make_circle(self, pos_x, pos_y, radius, resolution=32):
         verts = []
         radius = Vec2d(radius, 0)
         for i in range(resolution):
@@ -101,7 +132,7 @@ class __Editor:
         self.circles = []
         for cross in self.map.crossings:
             x,y = cross
-            self.circles.append(pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x,y,self.map.STREET_WIDTH/2))))
+            self.circles.append(pyglet.graphics.vertex_list(8, ("v2f", self.make_circle(x, y, self.map.STREET_WIDTH/2, 8))))
         pass
 
     def draw_map(self):
@@ -112,8 +143,12 @@ class __Editor:
 
     def check_mouse_over(self):
         self.is_hover = None
-        for i in range(len(self.map.crossings)):
-            if Mouse.mouse.position.get_distance(Vec2d(self.map.crossings[i])) < self.map.STREET_WIDTH/2:
+        if self.mode == MAP_MODE:
+            hover_radius = self.map.STREET_WIDTH/2
+        else:   # self.mode == COL_MODE:
+            hover_radius = self.collision_marker_size/2
+        for i in range(len(self.crossings)):
+            if Mouse.mouse.position.get_distance(Vec2d(self.crossings[i])) < hover_radius:
                 self.is_hover = i
 
     def update_hover_indicator(self):
@@ -122,10 +157,18 @@ class __Editor:
         if self.is_hover is None and self.hover_indicator:
             self.hover_indicator = None
         if self.is_hover is not None:
-            x, y = self.map.crossings[self.is_hover]
-            self.hover_indicator = pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x, y, 0.6 * self.map.STREET_WIDTH)), ("c3B", (125, 175, 255)*32))
+            if self.mode == MAP_MODE:
+                hover_radius = self.map.STREET_WIDTH / 2
+            else:  # self.mode == COL_MODE:
+                hover_radius = self.collision_marker_size / 2
+            x, y = self.crossings[self.is_hover]
+            self.hover_indicator = pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x, y, 1.2 * hover_radius)), ("c3B", (125, 175, 255)*32))
 
     def update_link_indicator(self):
+        if self.mode == MAP_MODE:
+            hover_radius = self.map.STREET_WIDTH / 2
+        else:  # self.mode == COL_MODE:
+            hover_radius = self.collision_marker_size / 2
         resolution = 32
         begin = None
         end = None
@@ -141,13 +184,12 @@ class __Editor:
             end = Mouse.mouse.position
             if self.is_hover is not None:
                 if begin != self.is_hover:
-                    end = Vec2d(self.map.crossings[self.is_hover])
-
-            begin = Vec2d(self.map.crossings[begin])
+                    end = Vec2d(self.crossings[self.is_hover])
+            begin = Vec2d(self.crossings[begin])
             direction = (end-begin)
             angle = direction.angle
             vectors = []
-            radius = Vec2d(0,0.8*self.map.STREET_WIDTH)
+            radius = Vec2d(0, 0.8*hover_radius)
             vectors.append(radius.rotated(angle))
             for i in range(resolution//2):
                 radius.rotate_degrees(360/resolution)
@@ -166,10 +208,30 @@ class __Editor:
                                                                   ("c3B", (220, 60, 30) * (resolution + 2)))
 
     def update(self, dt):
+        if Control.control.just_pressed("grid_plus"):
+            self.grid_size *= 2
+            self.make_grid()
+        if Control.control.just_pressed("grid_minus"):
+            self.grid_size /= 2
+            if self.grid_size <= 0:
+                self.grid_size = 10
+            self.make_grid()
+        if Control.control.just_pressed("change_mode") and self.is_moving is None and self.is_linking is None and self.is_unlinking is None:
+            if self.mode == MAP_MODE:
+                self.mode = COL_MODE
+            else:
+                self.mode = MAP_MODE
+        if self.mode == MAP_MODE:
+            self.crossings = self.map.crossings
+            self.edges = self.map.streets
+        elif self.mode == COL_MODE:
+            self.crossings = self.map.collision_vertices
+            self.edges = self.map.collision_edges
+
         self.check_mouse_over()
 
         if self.is_moving is not None:
-            self.map.crossings[self.is_moving] = (self.get_grid_mouse().x, self.get_grid_mouse().y)
+            self.crossings[self.is_moving] = (self.get_grid_mouse().x, self.get_grid_mouse().y)
             if Mouse.mouse.is_just_released(0):
                 is_move_valid = True
                 if Toolbar.toolbar.is_hover or not (0 < self.get_grid_mouse().x < WINDOW_WIDTH and 0 < self.get_grid_mouse().y < WINDOW_HEIGHT):
@@ -182,27 +244,27 @@ class __Editor:
                             print("invalid move")
                             is_move_valid = False
                 if not is_move_valid:
-                    self.map.crossings[self.is_moving] = self.move_last
+                    self.crossings[self.is_moving] = self.move_last
                 self.is_moving = None
 
         if self.is_linking is not None:
             if Mouse.mouse.is_just_pressed(0):
                 to_link = self.is_hover
                 is_link_valid = (to_link is not None and to_link != self.is_linking)
-                for street in self.map.streets:
+                for street in self.edges:
                     if to_link in street and self.is_linking in street:
                         is_link_valid = False
                 if is_link_valid:
-                    self.map.streets += [(self.is_linking, to_link)]
+                    self.edges += [(self.is_linking, to_link)]
                 self.is_linking = None
 
         if self.is_unlinking is not None:
             if Mouse.mouse.is_just_pressed(0):
                 to_unlink = self.is_hover
                 is_unlink_valid = (to_unlink is not None and to_unlink != self.is_unlinking)
-                for street in self.map.streets:
+                for street in self.edges:
                     if is_unlink_valid and to_unlink in street and self.is_unlinking in street:
-                        self.map.streets.remove(street)
+                        self.edges.remove(street)
                 self.is_unlinking = None
 
         if not Toolbar.toolbar.is_hover:
@@ -213,12 +275,12 @@ class __Editor:
                     self.is_unlinking = None
                     if Mouse.mouse.is_just_pressed(0):
                         is_add_valid = True
-                        for cross in self.map.crossings:
+                        for cross in self.crossings:
                             cross_pos = Vec2d(cross)
                             if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
                                 is_add_valid = False
                         if is_add_valid:
-                            self.map.crossings.append((self.get_grid_mouse().x, self.get_grid_mouse().y))
+                            self.crossings.append((self.get_grid_mouse().x, self.get_grid_mouse().y))
                 if Toolbar.toolbar.selected.tool == "remove":
                     self.is_moving = None
                     self.is_linking = None
@@ -226,25 +288,25 @@ class __Editor:
                     if Mouse.mouse.is_just_pressed(0):
                         if self.is_hover is not None:
                             to_remove =[]
-                            for i in range(len(self.map.streets)):
-                                if self.is_hover in self.map.streets[i]:
-                                    to_remove.append(self.map.streets[i])
+                            for i in range(len(self.edges)):
+                                if self.is_hover in self.edges[i]:
+                                    to_remove.append(self.edges[i])
                                 else:
-                                    ca, cb = self.map.streets[i]
+                                    ca, cb = self.edges[i]
                                     if ca > self.is_hover:
                                         ca -= 1
                                     if cb > self.is_hover:
                                         cb -= 1
-                                    self.map.streets[i] = (ca, cb)
+                                    self.edges[i] = (ca, cb)
                             for street in to_remove:
-                                self.map.streets.remove(street)
-                            self.map.crossings.pop(self.is_hover)
+                                self.edges.remove(street)
+                            self.crossings.pop(self.is_hover)
                             self.is_hover = None
                 if Toolbar.toolbar.selected.tool == "move":
                     if self.is_moving is None:
                         if self.is_hover is not None and Mouse.mouse.is_just_pressed(0):
                             self.is_moving = self.is_hover
-                            self.move_last = self.map.crossings[self.is_moving]
+                            self.move_last = self.crossings[self.is_moving]
                 if Toolbar.toolbar.selected.tool == "link":
                     if self.is_linking is None:
                         if self.is_hover is not None and Mouse.mouse.is_just_pressed(0):
@@ -259,24 +321,29 @@ class __Editor:
                 else:
                     self.showing_sidewalks = False
 
-
         self.update_hover_indicator()
         self.update_draw_map()
+        self.update_collision_draw()
         self.update_link_indicator()
         pass
 
     def draw(self):
         self.draw_map()
+        self.draw_grid()
         if self.hover_indicator:
             self.hover_indicator.draw(pyglet.gl.GL_LINE_LOOP)
         if self.link_indicator:
             self.link_indicator.draw(pyglet.gl.GL_LINE_LOOP)
-        self.draw_grid()
+        if self.col_edges_vlist is not None:
+            self.col_edges_vlist.draw(pyglet.gl.GL_LINES)
+        for v in self.col_vertices_vlists:
+            v.draw(pyglet.gl.GL_POLYGON)
         if self.showing_sidewalks:
             if self.sidewalks is not None:
                 self.sidewalks.draw(pyglet.gl.GL_LINES)
                 for cross in self.side_crossings:
                     cross.draw(pyglet.gl.GL_POLYGON)
+
 
     def open(self):
         self.window.set_fullscreen(False)
@@ -335,7 +402,7 @@ class __Editor:
         self.side_crossings = []
         for cross in self.map.sidewalk_crossings:
             x, y = cross
-            self.side_crossings.append(pyglet.graphics.vertex_list(32, ("v2f", self.make_circle(x, y, 4))))
+            self.side_crossings.append(pyglet.graphics.vertex_list(8, ("v2f", self.make_circle(x, y, 4, 8))))
         pass
 
 
