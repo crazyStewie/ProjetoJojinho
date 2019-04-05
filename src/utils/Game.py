@@ -36,6 +36,8 @@ class Game:
         pass
 
     def update(self, dt):
+        if dt > 1/30:
+            dt = 1/30
         if self.gui.mode == "game" and self.current_state != IN_GAME:
             self.current_state = IN_GAME
             self.game_manager = GameManager(self.gui.num_players, self.gui.game_level)
