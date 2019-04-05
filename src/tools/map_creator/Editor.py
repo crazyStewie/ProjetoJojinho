@@ -72,8 +72,8 @@ class __Editor:
 
     def get_grid_mouse(self):
         if self.grid_enabled:
-            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x) % self.grid_size + self.grid_size/2,
-                         Mouse.mouse.position.y - (Mouse.mouse.position.y) % self.grid_size + self.grid_size/2)
+            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x + self.grid_size/2) % self.grid_size + self.grid_size/2,
+                         Mouse.mouse.position.y - (Mouse.mouse.position.y + self.grid_size/2) % self.grid_size + self.grid_size/2)
         return Mouse.mouse.position
 
     def make_grid(self):
@@ -82,13 +82,13 @@ class __Editor:
             self.grid = None
         verts = []
         color = []
-        x = self.grid_size/2
+        x = 0
         while x < WINDOW_WIDTH:
             verts += [x, 0,
                                 x, WINDOW_HEIGHT]
             color += [255, 255, 255, 100, 255, 255, 255, 100]
             x += self.grid_size
-        y = self.grid_size/2
+        y = 0
         while y < WINDOW_HEIGHT:
             verts += [0, y, WINDOW_WIDTH, y]
             color += [255, 255, 255, 100, 255, 255, 255, 100]
