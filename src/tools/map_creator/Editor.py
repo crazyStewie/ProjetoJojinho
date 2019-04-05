@@ -230,7 +230,10 @@ class __Editor:
         elif self.mode == COL_MODE:
             self.crossings = self.map.collision_vertices
             self.edges = self.map.collision_edges
-
+        if self.mode == MAP_MODE:
+            hover_radius = self.map.STREET_WIDTH/2
+        else:   # self.mode == COL_MODE:
+            hover_radius = self.collision_marker_size/2
         self.check_mouse_over()
 
         if self.is_moving is not None:
@@ -242,8 +245,8 @@ class __Editor:
                     is_move_valid = False
                 for i in range(len(self.map.crossings)):
                     if i != self.is_moving:
-                        cross_pos = Vec2d(self.map.crossings[i])
-                        if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
+                        cross_pos = Vec2d(self.crossings[i])
+                        if cross_pos.get_distance(self.get_grid_mouse()) < 2*hover_radius:
                             print("invalid move")
                             is_move_valid = False
                 if not is_move_valid:
@@ -280,7 +283,7 @@ class __Editor:
                         is_add_valid = True
                         for cross in self.crossings:
                             cross_pos = Vec2d(cross)
-                            if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
+                            if cross_pos.get_distance(self.get_grid_mouse()) < 2*hover_radius:
                                 is_add_valid = False
                         if is_add_valid:
                             self.crossings.append((self.get_grid_mouse().x, self.get_grid_mouse().y))
