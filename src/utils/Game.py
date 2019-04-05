@@ -1,5 +1,9 @@
 from src.gui.GUI import GUI
 from src.utils.GameManager import GameManager
+import pyglet
+from src.game_elements.Player import Player
+from src.py_aux import consts
+import pymunk
 
 MAIN_MENU = 0
 IN_GAME = 1
@@ -13,7 +17,7 @@ class Game:
         self.gui = GUI(self.window)
         self.gui.setup_initial_menu()
         self.game_manager = None
-
+        self.fps_display = pyglet.window.FPSDisplay(self.window)
         # debug
         # self.space = pymunk.Space()
         #
@@ -36,6 +40,9 @@ class Game:
             self.current_state = IN_GAME
             self.game_manager = GameManager(self.gui.num_players, self.gui.game_level)
         if self.current_state == IN_GAME:
+            # self.player0.update(dt)
+            # self.player1.update(dt)
+            # self.space.step(dt)
             self.game_manager.update(dt)
             self.gui.update(dt)
         if self.current_state == MAIN_MENU:
@@ -48,4 +55,7 @@ class Game:
             self.gui.draw()
         if self.current_state == IN_GAME:
             self.game_manager.draw()
+            # self.player0.draw()
+            # self.player1.draw()
+        self.fps_display.draw()
         pass
