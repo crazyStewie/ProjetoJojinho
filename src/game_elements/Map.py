@@ -2,6 +2,7 @@ from pymunk.vec2d import Vec2d
 from src.utils import AngleHelper
 import pymunk
 
+
 class Map:
     def __init__(self):
         self.crossings = []
@@ -34,21 +35,21 @@ class Map:
 
     def generate_matrix(self):
         self.distances.clear()
-        for i in range(len(self.crossings)):
+        for i in range(len(self.sidewalk_crossings)):
             self.distances += [[]]
-        for i in range(len(self.crossings)):
-            for j in range(len(self.crossings)):
+        for i in range(len(self.sidewalk_crossings)):
+            for j in range(len(self.sidewalk_crossings)):
                 self.distances[i].append(-1)
 
-        for i in range(len(self.crossings)):
+        for i in range(len(self.sidewalk_crossings)):
             self.distances[i][i] = 0
-        for edge in self.streets:
+        for edge in self.sidewalks:
             self.distances[edge[0]][edge[1]] = self.distances[edge[1]][edge[0]] = \
-                Vec2d(self.crossings[edge[0]]).get_distance(Vec2d(self.crossings[edge[1]]))
+                Vec2d(self.sidewalk_crossings[edge[0]]).get_distance(Vec2d(self.sidewalk_crossings[edge[1]]))
 
-        for k in range(len(self.crossings)):
-            for i in range(len(self.crossings)):
-                for j in range(len(self.crossings)):
+        for k in range(len(self.sidewalk_crossings)):
+            for i in range(len(self.sidewalk_crossings)):
+                for j in range(len(self.sidewalk_crossings)):
                     if self.distances[i][k] != -1 and self.distances[k][j] != -1:
                         if self.distances[i][k] + self.distances[k][j] < self.distances[i][j] or \
                                 self.distances[i][j] == -1:
@@ -128,7 +129,7 @@ class Map:
                 self.sidewalks.append((self.sidewalk_crossings.index(crossings[1][0]),
                                        self.sidewalk_crossings.index(crossings[2][0])))
 
-    def calculate_distances(self):
+    def calculate_lengths(self):
         self.streets_length.clear()
         for street in self.streets:
             self.streets_length.append((Vec2d(self.crossings[street[0]]) - Vec2d(self.crossings[street[1]])).length)
@@ -136,6 +137,11 @@ class Map:
         for sidewalk in self.sidewalks:
             self.sidewalks_length.append((Vec2d(self.sidewalk_crossings[sidewalk[0]]) -
                                           Vec2d(self.sidewalk_crossings[sidewalk[1]])).length)
+    
+    def calculate_internal_variables(self):
+        self.generate_sidewalks()
+        self.generate_matrix()
+        self.calculate_lengths()
 
     def get_street_direction(self, street_index):
         if street_index >= len(self.streets):
