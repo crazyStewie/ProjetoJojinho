@@ -24,6 +24,7 @@ def make_circle(pos_x, pos_y, radius):
 
 class GameManager:
     def __init__(self, number_players, map_number):
+        self.is_over = False
         self.passerby_batch = pyglet.graphics.Batch()
         self.number_players = number_players
         self.map_number = map_number
@@ -56,7 +57,7 @@ class GameManager:
             self.carriers = [-1, -1]
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
-        for i in range(500):
+        for i in range(100):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
@@ -280,9 +281,22 @@ class GameManager:
             if self.run_clocks[clock_index] != -1:
                 self.run_clocks[clock_index] += dt
 
+        out_count = 0
+        for player in self.players:
+            if player.fuel <= 0:
+                out_count += 1
+            if out_count == self.number_players:
+                self.is_over = True
+
+    def get_scores(self):
+        scores = []
+        for p in self.players:
+            scores += [p.money]
+        return scores
+
     def draw(self):
         self.map.draw_back()
-        #self.space.debug_draw(self.options)
+        self.space.debug_draw(self.options)
         #for passenger in self.passengers:
         #    passenger.sprite.draw()
         self.passerby_batch.draw()

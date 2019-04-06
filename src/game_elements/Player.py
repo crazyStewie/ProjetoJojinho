@@ -55,7 +55,10 @@ class Player:
         impulse = Vec2d(0, 0)
         if forward_velocity < self.MAX_SPEED:
             impulse += dt*Vec2d(1, 0)*(self.MAX_SPEED - forward_velocity)*self.body.mass*target_direction.length
-            self.fuel -= impulse.length*self.FUEL_SCALE/self.MAX_SPEED
+            dfuel = -impulse.length*self.FUEL_SCALE/self.MAX_SPEED
+            if dfuel >=0:
+                dfuel = -1/(300)*dt
+            self.fuel += dfuel
             if self.fuel <= 0:
                 self.fuel = 0
                 impulse = Vec2d.zero()

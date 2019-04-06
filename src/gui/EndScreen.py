@@ -1,6 +1,6 @@
 import pyglet
 from src.py_aux import consts
-
+from src.utils import Control
 
 class EndScreen:
     def __init__(self, total_scores = [1750,1500,1420,1600]):
@@ -23,7 +23,7 @@ class EndScreen:
         self.stack_tops = [200]*num_players
         self.stack_sizes = [0]*num_players
         self.ANIMATION_SCALE = 250
-
+        self.is_over = False
 
     def setup_background(self):
         step = 260
@@ -112,10 +112,8 @@ class EndScreen:
                 self.stack_tops[i] -= 20
             for sprite in self.stack_sprites:
                 sprite.y -= 20
-        print(i)
-        print(self.money_amount[i])
-        print(self.money_amount[i] % 10)
-        print(self.stack_sizes[i])
+        if Control.control.just_released("ui_action"):
+            self.is_over = True
         pass
 
     def draw_background(self):
@@ -123,6 +121,10 @@ class EndScreen:
             element.draw(pyglet.gl.GL_POLYGON)
         for element in self.background_elements:
             element.draw()
+
+    def destroy(self):
+        for element in self.background_graphics:
+            element.delete()
 
     def draw(self):
         self.draw_background()

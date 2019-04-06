@@ -18,12 +18,13 @@ class GUI:
         self.mode = ""
         self.game_level = 1
         self.num_players = 2
-
+        self.params = None
     def setup_initial_menu(self, params=None):
         self.mode = "initial"
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
         if params is not None:
+            self.params = params
             self.active_elements = [Button("start", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 250])], gui=self),
                                     Selector("level", [sum(x) for x in zip(consts.WINDOW_CENTER, [0, 100])],
                                              value=params[0]),
