@@ -1,4 +1,5 @@
 import pyglet
+pyglet.options['debug_gl'] = False
 import pymunk
 import pymunk.pyglet_util
 
@@ -29,21 +30,21 @@ from src.gui.GUI import GUI
 #                           pymunk.vec2d.Vec2d(0, consts.WINDOW_HEIGHT), 4),
 #     pymunk.shapes.Segment(bounding_body, pymunk.vec2d.Vec2d(0, consts.WINDOW_HEIGHT), pymunk.vec2d.Vec2d(0, 0), 4))
 #space.add(bounding_body, bounding_segments[0], bounding_segments[1], bounding_segments[2], bounding_segments[3])
-main_window = pyglet.window.Window(width=consts.WINDOW_WIDTH, height=consts.WINDOW_HEIGHT, fullscreen=True)
-game = Game(main_window)
+#main_window = pyglet.window.Window(width=consts.WINDOW_WIDTH, height=consts.WINDOW_HEIGHT, fullscreen=True)
+#game = Game(main_window)
 
-def update(dt):
-    Control.control.update(main_window)
-    game.update(dt)
+#def update(dt):
+#    Control.control.update(main_window)
+#    game.update(dt)
     #gui.update()
 #    for p in players:
 #        p.update(dt)
     #space.step(dt)
 
 
-@main_window.event
-def on_draw():
-    game.draw()
+#@main_window.event
+#def on_draw():
+#    game.draw()
     #main_window.clear()
     #fps_display.draw()
     #gui.draw()
@@ -52,5 +53,6 @@ def on_draw():
     #space.debug_draw(options)
 
 
-pyglet.clock.schedule_interval(update, 1/consts.FPS)
+#pyglet.clock.schedule_interval(update, 1/consts.FPS)
+game = Game()
 pyglet.app.run()

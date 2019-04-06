@@ -7,7 +7,7 @@ from pymunk.vec2d import Vec2d
 class Player:
     def __init__(self, player_id, pos_x, pos_y, rotation,  space):
         self.MASS = 10
-        self.MAX_SPEED = 450
+        self.MAX_SPEED = 300
         self.TAN_BREAK_FACTOR = 1/20
         self.LAT_BREAK_FACTOR = 20
         self.MAX_TURN = 0.6

@@ -91,7 +91,7 @@ class __Editor:
         y = 0
         while y < WINDOW_HEIGHT:
             verts += [0, y, WINDOW_WIDTH, y]
-            color += [255, 255, 255, 100, 255, 255, 255, 100]
+            color += [255, 255, 255, 15, 255, 255, 255, 15]
             y += self.grid_size
         self.grid = pyglet.graphics.vertex_list(len(verts)//2, ("v2f", verts), ("c4B", color))
 

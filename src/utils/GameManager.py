@@ -24,6 +24,7 @@ def make_circle(pos_x, pos_y, radius):
 
 class GameManager:
     def __init__(self, number_players, map_number):
+        self.passerby_batch = pyglet.graphics.Batch()
         self.number_players = number_players
         self.map_number = map_number
         self.map: Map = None
@@ -42,15 +43,16 @@ class GameManager:
         self.carriers = []
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
-        for i in range(125):
+        for i in range(5000):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
             position = Vec2d(self.map.sidewalk_crossings[self.map.sidewalks[random_sidewalk][0]]) + \
-                       self.map.get_sidewalk_direction(random_sidewalk)*random_position
+                self.map.get_sidewalk_direction(random_sidewalk)*random_position
             self.passengers.append(Passerby(random_sidewalk, random_position, random_direction,
-                                            (position.x, position.y)))
-        self.space = pymunk.Space()
+                                            (position.x, position.y),self.passerby_batch))
+        self.space = pymunk.Space(True)
+        self.space.threads = 4
 
         for i in range(number_players):
             self.players.append(Player(i, 100, 100+50*i, 0, self.space))
@@ -77,6 +79,7 @@ class GameManager:
         self.options = pymunk.pyglet_util.DrawOptions()
 
     def update(self, dt):
+        self.space.step(dt)
         for player in self.players:
             player.update(dt)
         for passenger in self.passengers:
@@ -114,7 +117,7 @@ class GameManager:
             position = Vec2d(self.map.sidewalk_first_crossing(passenger.sidewalk)) + \
                        self.map.get_sidewalk_direction(passenger.sidewalk) * passenger.relative_position
             passenger.sprite.update(x=position.x, y=position.y)
-        self.space.step(dt)
+
         for HUD_ in self.HUDs:
             HUD_.update(dt)
         if self.passenger_can_request:
@@ -144,7 +147,9 @@ class GameManager:
             for player_index in range(len(self.players)):
                 if requesting_position.get_distance(self.players[player_index].body.position) < 24 \
                         and (len(self.getting_in_car_players) <= requesting_passenger_index
-                             or player_index == self.getting_in_car_players[requesting_passenger_index]):
+                             or player_index == self.getting_in_car_players[requesting_passenger_index]
+                             or self.getting_in_car_players[requesting_passenger_index] == -1):
+                    print(player_index, requesting_passenger_index, self.getting_in_car_players)
                     if len(self.getting_in_car_players) <= requesting_passenger_index:
                         if requesting_passenger_index == 0:
                             self.getting_in_car_players.append(player_index)
@@ -183,8 +188,10 @@ class GameManager:
                     if requesting_position.get_distance(self.players[player_index].body.position) > 24 \
                             and (len(self.getting_in_car_players) <= requesting_passenger_index
                                  or player_index == self.getting_in_car_players[requesting_passenger_index]):
-                        self.getting_in_car_players.clear()
-                        self.get_in_car_timers.clear()
+                        if len(self.getting_in_car_players) > 0:
+                            print(self.getting_in_car_players, requesting_passenger_index)
+                            self.getting_in_car_players[requesting_passenger_index] = -1
+                            self.get_in_car_timers[requesting_passenger_index] = -1
         for carrier_index in range(len(self.carriers)):
             destination_position = Vec2d(
                 self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][0])) + \
@@ -218,19 +225,20 @@ class GameManager:
                                            self.tuple_destinations[carrier_index][1]
                                 self.passengers.append(Passerby(self.tuple_destinations[carrier_index][0],
                                                                 self.tuple_destinations[carrier_index][1],
-                                                                math.floor(random()*2)*2 - 1, (position.x, position.y)))
+                                                                math.floor(random()*2)*2 - 1, (position.x, position.y),self.passerby_batch))
                                 self.get_out_of_car_timers.pop(carrier_index)
                                 self.tuple_destinations.pop(carrier_index)
                                 self.passenger_can_request = True
 
     def draw(self):
         self.map.draw_back()
-        for passenger in self.passengers:
-            passenger.sprite.draw()
+        #self.space.debug_draw(self.options)
+        #for passenger in self.passengers:
+        #    passenger.sprite.draw()
+        self.passerby_batch.draw()
         for player in self.players:
             player.draw()
         self.map.draw_front()
-        self.space.debug_draw(self.options)
         for HUD_ in self.HUDs:
             HUD_.draw()
         for circle in self.passenger_circles:

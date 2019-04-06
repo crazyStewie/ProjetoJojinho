@@ -6,8 +6,8 @@ class Map:
     def __init__(self):
         self.crossings = []
         self.streets = []
-        self.STREET_WIDTH = 75
-        self.SIDEWALK_WIDTH = 85
+        self.STREET_WIDTH = 50
+        self.SIDEWALK_WIDTH = 60
         self.sidewalk_crossings = []
         self.sidewalks = []
         self.distances = []

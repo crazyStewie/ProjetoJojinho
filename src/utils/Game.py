@@ -1,6 +1,7 @@
 from src.gui.GUI import GUI
 from src.utils.GameManager import GameManager
 import pyglet
+from src.utils import Control
 from src.game_elements.Player import Player
 from src.py_aux import consts
 import pymunk
@@ -10,14 +11,17 @@ IN_GAME = 1
 POST_GAME = 3
 
 
-class Game:
-    def __init__(self, window):
+class Game(pyglet.window.Window):
+    def __init__(self):
+        super(Game, self).__init__(width=consts.WINDOW_WIDTH, height=consts.WINDOW_HEIGHT, fullscreen=True)
+        pyglet.clock.schedule_interval(self.update, 1/consts.FPS)
+        Control.control.setup(self)
         self.current_state = MAIN_MENU
-        self.window = window
-        self.gui = GUI(self.window)
+        self.gui = GUI(self)
         self.gui.setup_initial_menu()
         self.game_manager = None
-        self.fps_display = pyglet.window.FPSDisplay(self.window)
+        self.fps_display = pyglet.window.FPSDisplay(self)
+        self.frame_count = 0
         # debug
         # self.space = pymunk.Space()
         #
@@ -36,8 +40,13 @@ class Game:
         pass
 
     def update(self, dt):
-        if dt > 1/30:
-            dt = 1/30
+        self.frame_count += 1
+        Control.control.update(self)
+        if dt > 1/10:
+            print("on frame : " + str(self.frame_count))
+            print("delta = " + str(dt))
+            print("fps   = " + str(1/dt))
+            dt = 1/10
         if self.gui.mode == "game" and self.current_state != IN_GAME:
             self.current_state = IN_GAME
             self.game_manager = GameManager(self.gui.num_players, self.gui.game_level)
@@ -51,8 +60,8 @@ class Game:
             self.gui.update(dt)
         pass
 
-    def draw(self):
-        self.window.clear()
+    def on_draw(self):
+        self.clear()
         if self.current_state == MAIN_MENU:
             self.gui.draw()
         if self.current_state == IN_GAME:
