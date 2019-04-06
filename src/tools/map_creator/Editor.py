@@ -243,7 +243,7 @@ class __Editor:
                 if Toolbar.toolbar.is_hover or not (0 < self.get_grid_mouse().x < WINDOW_WIDTH and 0 < self.get_grid_mouse().y < WINDOW_HEIGHT):
                     print("invalid move, invalid cursor position at ", Mouse.mouse.position.x, ", ", Mouse.mouse.position.y)
                     is_move_valid = False
-                for i in range(len(self.map.crossings)):
+                for i in range(len(self.crossings)):
                     if i != self.is_moving:
                         cross_pos = Vec2d(self.crossings[i])
                         if cross_pos.get_distance(self.get_grid_mouse()) < 2*hover_radius:
@@ -364,6 +364,9 @@ class __Editor:
             self.map = Map()
             self.map.crossings = tmp_map.crossings
             self.map.streets = tmp_map.streets
+            if hasattr(tmp_map, 'collision_vertices'):
+                self.map.collision_vertices = tmp_map.collision_vertices
+                self.map.collision_edges = tmp_map.collision_edges
         self.window.set_fullscreen(True)
         self.window.set_visible(True)
 
