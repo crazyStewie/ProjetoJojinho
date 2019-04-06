@@ -15,6 +15,7 @@ class Player:
         self.rotation = 0
         self.player_id = player_id
         self.FUEL_SCALE = 0.002
+        self.power_up = None
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
 

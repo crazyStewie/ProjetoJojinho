@@ -8,6 +8,7 @@ from pymunk.vec2d import Vec2d
 from src.py_aux import consts
 from src.game_elements.Map import Map
 from src.game_elements.Player import Player
+from src.game_elements.PowerUp import PowerUp
 from src.gui import HUD
 PASSENGER_SPEED = 50
 
@@ -31,9 +32,12 @@ class GameManager:
         self.players = []
         self.passengers = []
         self.MAX_PASSENGERS_REQUESTING = self.number_players//2
+        self.TYPES_POWER_UP = 6
         self.passenger_can_request = True
         self.passenger_timer = -1
         self.money_constant = 0.05
+        self.power_up_timer = -1
+        self.next_power_up = None
         if self.MAX_PASSENGERS_REQUESTING == 1:
             self.requesting_passengers = [-1]
             self.get_in_car_timers = [-1]
@@ -44,6 +48,7 @@ class GameManager:
             self.run_clocks = [-1]
             self.get_out_of_car_timers = [-1]
             self.carriers = [-1]
+            self.power_ups = [None]
         else:
             self.requesting_passengers = [-1, -1]
             self.get_in_car_timers = [-1, -1]
@@ -54,6 +59,7 @@ class GameManager:
             self.run_clocks = [-1, -1]
             self.get_out_of_car_timers = [-1, -1]
             self.carriers = [-1, -1]
+            self.power_ups = [None, None]
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
         for i in range(500):
@@ -221,7 +227,6 @@ class GameManager:
                             else:
                                 final_crossing = \
                                     self.map.sidewalk_second_crossing_index(self.tuple_destinations[carrier_index][2])
-                            print(initial_crossing, final_crossing)
                             time_penalty = (self.map.distances[initial_crossing][final_crossing] /
                                            self.players[player_index].MAX_SPEED) / self.run_clocks[carrier_index]
                             payment = \
@@ -231,6 +236,36 @@ class GameManager:
                             self.get_out_of_car_timers[carrier_index] = -1
                             self.tuple_destinations[carrier_index] = -1
                             self.passenger_can_request = True
+
+    def update_power_ups(self, dt):
+        for player in self.players:
+            for power_up_index in range(len(self.power_ups)):
+                if self.power_ups[power_up_index] is None:
+                    continue
+                if Vec2d(self.power_ups[power_up_index].sprite.position).get_distance(player.body.position) < 32 and \
+                        player.power_up is None:
+                    player.power_up = self.power_ups[power_up_index]
+                    self.power_ups[power_up_index] = None
+                    break
+        if len(self.power_ups) - self.power_ups.count(None) == self.number_players:
+            return
+        if self.next_power_up is None:
+            random_power_up = math.floor(random()*self.TYPES_POWER_UP)
+            self.next_power_up = PowerUp(random_power_up)
+            self.power_up_timer = random()*(self.next_power_up.time_range[1] - self.next_power_up.time_range[0]) + \
+                                  self.next_power_up.time_range[0]
+            return
+        if self.power_up_timer > 0:
+            self.power_up_timer -= dt
+            return
+        random_street = math.floor(random()*len(self.map.streets))
+        random_relative_position = random()*self.map.streets_length[random_street]
+        position = Vec2d(self.map.street_first_crossing(random_street)) + \
+                   self.map.get_street_direction(random_street) * random_relative_position
+        self.next_power_up.sprite.update(x=position.x, y=position.y)
+        self.power_ups.append(self.next_power_up)
+        self.power_up_timer = -1
+        self.next_power_up = None
 
     def update(self, dt):
         self.space.step(dt)
@@ -277,6 +312,7 @@ class GameManager:
         self.update_passenger_can_request(dt)
         self.update_requesting_passengers(dt)
         self.update_carriers(dt)
+        self.update_power_ups(dt)
         for clock_index in range(len(self.run_clocks)):
             if self.run_clocks[clock_index] != -1:
                 self.run_clocks[clock_index] += dt
@@ -298,4 +334,7 @@ class GameManager:
         for circle in self.destination_circles:
             if circle is not None:
                 circle.draw(pyglet.gl.GL_LINE_LOOP)
+        for power_up in self.power_ups:
+            if power_up is not None:
+                power_up.sprite.draw()
         self.map.draw_front()
