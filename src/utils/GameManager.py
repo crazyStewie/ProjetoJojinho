@@ -88,48 +88,7 @@ class GameManager:
                                                                   HUD.HUD_WIDTH + HUD.HUD_WIDTH*player_index, 0)))
         self.options = pymunk.pyglet_util.DrawOptions()
 
-    def update(self, dt):
-        self.space.step(dt)
-        for player in self.players:
-            player.update(dt)
-        for passenger in self.passengers:
-            passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
-            if passenger.relative_position < 0:
-                possibilities = []
-                current_crossing = self.map.sidewalks[passenger.sidewalk][0]
-                for i in range(len(self.map.sidewalks)):
-                    if current_crossing in self.map.sidewalks[i] and i != passenger.sidewalk:
-                        possibilities.append(i)
-                random_index = math.floor(random()*len(possibilities))
-                new_sidewalk = possibilities[random_index]
-                if current_crossing == self.map.sidewalks[new_sidewalk][0]:
-                    passenger.relative_position = 0
-                    passenger.direction = 1
-                else:
-                    passenger.relative_position = self.map.sidewalks_length[new_sidewalk]
-                    passenger.direction = -1
-                passenger.sidewalk = new_sidewalk
-            elif passenger.relative_position > self.map.sidewalks_length[passenger.sidewalk]:
-                possibilities = []
-                current_crossing = self.map.sidewalks[passenger.sidewalk][1]
-                for i in range(len(self.map.sidewalks)):
-                    if current_crossing in self.map.sidewalks[i] and i != passenger.sidewalk:
-                        possibilities.append(i)
-                random_index = math.floor(random() * len(possibilities))
-                new_sidewalk = possibilities[random_index]
-                if current_crossing == self.map.sidewalks[new_sidewalk][0]:
-                    passenger.relative_position = 0
-                    passenger.direction = 1
-                else:
-                    passenger.relative_position = self.map.sidewalks_length[new_sidewalk]
-                    passenger.direction = -1
-                passenger.sidewalk = new_sidewalk
-            position = Vec2d(self.map.sidewalk_first_crossing(passenger.sidewalk)) + \
-                       self.map.get_sidewalk_direction(passenger.sidewalk) * passenger.relative_position
-            passenger.sprite.update(x=position.x, y=position.y)
-
-        for HUD_ in self.HUDs:
-            HUD_.update(dt)
+    def update_passenger_can_request(self, dt):
         if self.passenger_can_request:
             if self.passenger_timer == -1:
                 self.passenger_timer = random()*4 + 3
@@ -162,6 +121,8 @@ class GameManager:
                                                  self.requesting_passengers.count(-1) + len(self.carriers) - \
                                                  self.carriers.count(-1) < self.MAX_PASSENGERS_REQUESTING
                     self.passenger_timer = -1
+
+    def update_requesting_passengers(self, dt):
         for requesting_passenger_index in range(len(self.requesting_passengers)):
             if self.requesting_passengers[requesting_passenger_index] == -1:
                 continue
@@ -211,6 +172,8 @@ class GameManager:
                             and self.getting_in_car_players[requesting_passenger_index] == player_index:
                         self.getting_in_car_players[requesting_passenger_index] = -1
                         self.get_in_car_timers[requesting_passenger_index] = -1
+
+    def update_carriers(self, dt):
         for carrier_index in range(len(self.carriers)):
             if self.carriers[carrier_index] == -1:
                 continue
@@ -243,6 +206,52 @@ class GameManager:
                             self.get_out_of_car_timers[carrier_index] = -1
                             self.tuple_destinations[carrier_index] = -1
                             self.passenger_can_request = True
+
+    def update(self, dt):
+        self.space.step(dt)
+        for player in self.players:
+            player.update(dt)
+        for passenger in self.passengers:
+            passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
+            if passenger.relative_position < 0:
+                possibilities = []
+                current_crossing = self.map.sidewalks[passenger.sidewalk][0]
+                for i in range(len(self.map.sidewalks)):
+                    if current_crossing in self.map.sidewalks[i] and i != passenger.sidewalk:
+                        possibilities.append(i)
+                random_index = math.floor(random()*len(possibilities))
+                new_sidewalk = possibilities[random_index]
+                if current_crossing == self.map.sidewalks[new_sidewalk][0]:
+                    passenger.relative_position = 0
+                    passenger.direction = 1
+                else:
+                    passenger.relative_position = self.map.sidewalks_length[new_sidewalk]
+                    passenger.direction = -1
+                passenger.sidewalk = new_sidewalk
+            elif passenger.relative_position > self.map.sidewalks_length[passenger.sidewalk]:
+                possibilities = []
+                current_crossing = self.map.sidewalks[passenger.sidewalk][1]
+                for i in range(len(self.map.sidewalks)):
+                    if current_crossing in self.map.sidewalks[i] and i != passenger.sidewalk:
+                        possibilities.append(i)
+                random_index = math.floor(random() * len(possibilities))
+                new_sidewalk = possibilities[random_index]
+                if current_crossing == self.map.sidewalks[new_sidewalk][0]:
+                    passenger.relative_position = 0
+                    passenger.direction = 1
+                else:
+                    passenger.relative_position = self.map.sidewalks_length[new_sidewalk]
+                    passenger.direction = -1
+                passenger.sidewalk = new_sidewalk
+            position = Vec2d(self.map.sidewalk_first_crossing(passenger.sidewalk)) + \
+                       self.map.get_sidewalk_direction(passenger.sidewalk) * passenger.relative_position
+            passenger.sprite.update(x=position.x, y=position.y)
+
+        for HUD_ in self.HUDs:
+            HUD_.update(dt)
+        self.update_passenger_can_request(dt)
+        self.update_requesting_passengers(dt)
+        self.update_carriers(dt)
 
     def draw(self):
         self.map.draw_back()
