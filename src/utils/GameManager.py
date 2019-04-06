@@ -53,7 +53,7 @@ class GameManager:
             self.carriers = [-1, -1]
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
-        for i in range(50):
+        for i in range(500):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
@@ -140,13 +140,21 @@ class GameManager:
                     while passenger_index < len(self.requesting_passengers) - 1 and \
                             self.requesting_passengers[passenger_index] != -1:
                         passenger_index += 1
-                    self.requesting_passengers[passenger_index] = \
-                        self.passengers[math.floor(random()*len(self.passengers))]
-                    requesting_passenger = self.requesting_passengers[passenger_index]
+                    redo = True
+                    requesting_passenger = None
+                    position = None
+                    while redo:
+                        redo = False
+                        self.requesting_passengers[passenger_index] = \
+                            self.passengers[math.floor(random()*len(self.passengers))]
+                        requesting_passenger = self.requesting_passengers[passenger_index]
+                        position = Vec2d(self.map.sidewalk_first_crossing(requesting_passenger.sidewalk)) + \
+                                   self.map.get_sidewalk_direction(requesting_passenger.sidewalk) * \
+                                   requesting_passenger.relative_position
+                        for player in self.players:
+                            if position.get_distance(player.body.position) < 400:
+                                redo = True
                     requesting_passenger.direction = 0
-                    position = Vec2d(self.map.sidewalk_first_crossing(requesting_passenger.sidewalk)) + \
-                               self.map.get_sidewalk_direction(requesting_passenger.sidewalk) * \
-                               requesting_passenger.relative_position
                     circle = pyglet.graphics.vertex_list(32, ("v2f", make_circle(position.x, position.y, 16)),
                                                          ("c3B", (255, 190, 60) * 32))
                     self.passenger_circles[passenger_index] = circle
@@ -181,11 +189,17 @@ class GameManager:
                             self.get_in_car_timers[requesting_passenger_index] = -1
                             self.getting_in_car_players[requesting_passenger_index] = -1
                             self.requesting_passengers[requesting_passenger_index] = -1
-                            random_sidewalk = math.floor(random()*len(self.map.sidewalks))
-                            random_relative_position = random()*self.map.sidewalks_length[random_sidewalk]
-                            position = Vec2d(self.map.sidewalk_first_crossing(random_sidewalk)) + \
-                                       self.map.get_sidewalk_direction(random_sidewalk) * \
-                                       random_relative_position
+                            random_sidewalk = None
+                            random_relative_position = 0
+                            position = 0
+                            redo = True
+                            while redo:
+                                random_sidewalk = math.floor(random()*len(self.map.sidewalks))
+                                random_relative_position = random()*self.map.sidewalks_length[random_sidewalk]
+                                position = Vec2d(self.map.sidewalk_first_crossing(random_sidewalk)) + \
+                                           self.map.get_sidewalk_direction(random_sidewalk) * \
+                                           random_relative_position
+                                redo = position.get_distance(self.players[player_index].body.position) < 600
                             circle = pyglet.graphics.vertex_list(32, ("v2f", make_circle(position.x, position.y, 16)),
                                                                  ("c3B", (120, 240, 90) * 32))
                             self.destination_circles[requesting_passenger_index] = circle
@@ -232,7 +246,7 @@ class GameManager:
 
     def draw(self):
         self.map.draw_back()
-        self.space.debug_draw(self.options)
+        #self.space.debug_draw(self.options)
         #for passenger in self.passengers:
         #    passenger.sprite.draw()
         self.passerby_batch.draw()
