@@ -8,10 +8,8 @@ class Player:
     def __init__(self, player_id, pos_x, pos_y, rotation,  space):
         self.MASS = 10
         self.MAX_SPEED = 300
-        self.TAN_BREAK_FACTOR = 1/20
+        self.FRICTION = 6
         self.LAT_BREAK_FACTOR = 20
-        self.MAX_TURN = 0.6
-        self.STEER_SPEED = 2.4
         self.ANGULAR_SPEED = 6
         self.position = Vec2d(0, 0)
         self.rotation = 0
@@ -60,9 +58,9 @@ class Player:
                 self.fuel = 0
                 impulse = Vec2d.zero()
         if impulse != Vec2d.zero():
-            impulse += 6*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
+            impulse += self.FRICTION*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
         else:
-            impulse += -6*dt*local_velocity*self.body.mass
+            impulse += -self.FRICTION*dt*local_velocity*self.body.mass
         self.body.apply_impulse_at_local_point(impulse, Vec2d.zero())
 
         if target_direction.length > 0.1 and self.fuel > 0:

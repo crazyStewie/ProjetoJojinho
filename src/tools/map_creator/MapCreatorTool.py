@@ -11,8 +11,6 @@ from pymunk.vec2d import Vec2d
 map_creator_window = pyglet.window.Window(width=WINDOW_WIDTH, height=WINDOW_HEIGHT, fullscreen=True)
 Editor.editor.set_window(map_creator_window)
 Control.control.setup(map_creator_window)
-#with open("../../../assets/levels/test_level.pickle", "wb") as f:
-#    pickle.dump(game_map, f, pickle.HIGHEST_PROTOCOL)
 
 
 @map_creator_window.event

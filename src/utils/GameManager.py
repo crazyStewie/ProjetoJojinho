@@ -221,6 +221,7 @@ class GameManager:
                             else:
                                 final_crossing = \
                                     self.map.sidewalk_second_crossing_index(self.tuple_destinations[carrier_index][2])
+                            print(initial_crossing, final_crossing)
                             time_penalty = (self.map.distances[initial_crossing][final_crossing] /
                                            self.players[player_index].MAX_SPEED) / self.run_clocks[carrier_index]
                             payment = \
