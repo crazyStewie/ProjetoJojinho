@@ -5,7 +5,7 @@ from src.utils import Control
 from src.game_elements.Player import Player
 from src.py_aux import consts
 import pymunk
-
+from src.gui.EndScreen import EndScreen
 MAIN_MENU = 0
 IN_GAME = 1
 POST_GAME = 3
@@ -22,6 +22,7 @@ class Game(pyglet.window.Window):
         self.game_manager = None
         self.fps_display = pyglet.window.FPSDisplay(self)
         self.frame_count = 0
+        self.post_game_screen = None
         # debug
         # self.space = pymunk.Space()
         #
@@ -58,6 +59,10 @@ class Game(pyglet.window.Window):
             self.gui.update(dt)
         if self.current_state == MAIN_MENU:
             self.gui.update(dt)
+        if self.current_state == POST_GAME:
+            if self.post_game_screen is None:
+                self.post_game_screen = EndScreen()
+            self.post_game_screen.update(dt)
         pass
 
     def on_draw(self):
@@ -68,5 +73,7 @@ class Game(pyglet.window.Window):
             self.game_manager.draw()
             # self.player0.draw()
             # self.player1.draw()
+        if self.current_state == POST_GAME:
+            self.post_game_screen.draw()
         self.fps_display.draw()
         pass
