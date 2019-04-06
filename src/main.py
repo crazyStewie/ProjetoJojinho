@@ -1,11 +1,16 @@
+import sys
+print(sys.path[0])
+parent_dir = sys.path[0][:len(sys.path[0])-4]
+print(parent_dir)
+sys.path += [parent_dir]
+
 import pyglet
 pyglet.options['debug_gl'] = False
 import pymunk
 import pymunk.pyglet_util
-
 from src.utils.Game import Game
 from src.utils import Control
-from game_elements.Player import Player
+from src.game_elements.Player import Player
 from src.py_aux import consts
 from src.gui.GUI import GUI
 
