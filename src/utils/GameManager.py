@@ -102,6 +102,22 @@ class GameManager:
                                                                   HUD.HUD_WIDTH + HUD.HUD_WIDTH*player_index, 0)))
         self.options = pymunk.pyglet_util.DrawOptions()
 
+    def teleport(self, player):
+        redo = True
+        position = None
+        while redo:
+            redo = False
+            random_street = math.floor(random() * len(self.map.streets))
+            random_position = random() * self.map.streets_length[random_street]
+            position = Vec2d(self.map.street_first_crossing(random_street)) + \
+                       self.map.get_street_direction(random_street) * random_position
+            for other in self.players:
+                if player != other and position.get_distance(other.body.position) < 60:
+                    redo = True
+                if player == other and position.get_distance(other.body.position) < 400:
+                    redo = True
+        player.body.position = position
+
     def update_passenger_can_request(self, dt):
         if self.passenger_can_request:
             if self.passenger_timer == -1:
@@ -211,7 +227,8 @@ class GameManager:
                             self.destination_circles[carrier_index].delete()
                             self.destination_circles[carrier_index] = None
                             self.carriers[carrier_index] = -1
-                            position = Vec2d(self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][2])) + \
+                            position = Vec2d(
+                                self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][2])) + \
                                        self.map.get_sidewalk_direction(self.tuple_destinations[carrier_index][2]) * \
                                        self.tuple_destinations[carrier_index][3]
                             self.passengers.append(Passerby(self.tuple_destinations[carrier_index][2],
@@ -225,7 +242,7 @@ class GameManager:
                             else:
                                 initial_crossing = \
                                     self.map.sidewalk_second_crossing_index(self.tuple_destinations[carrier_index][0])
-                            if round(self.tuple_destinations[carrier_index][3]/
+                            if round(self.tuple_destinations[carrier_index][3] /
                                      self.map.sidewalks_length[self.tuple_destinations[carrier_index][2]]) == 0:
                                 final_crossing = \
                                     self.map.sidewalk_first_crossing_index(self.tuple_destinations[carrier_index][2])
@@ -296,6 +313,14 @@ class GameManager:
                                                                  self.players[player_index].body.position.y))
                     self.oil_puddles_timers.append(5)
                     self.oil_puddles_causers.append(player_index)
+                elif self.players[player_index].power_up.name == "invert":
+                    self.players[player_index].apply_invert = True
+                    self.players[player_index].invert_timer = 2
+                elif self.players[player_index].power_up.name == "teleport":
+                    self.players[player_index].apply_teleport = True
+                    self.players[player_index].teleport_timer = 2
+                elif self.players[player_index].power_up.name == "self_teleport":
+                    self.teleport(self.players[player_index])
                 self.players[player_index].power_up = None
             for oil_puddle_index in range(len(self.oil_puddles)):
                 if Vec2d(self.oil_puddles[oil_puddle_index].position).\
@@ -303,6 +328,29 @@ class GameManager:
                         player_index != self.oil_puddles_causers[oil_puddle_index]:
                     self.players[player_index].is_oiled = True
                     self.players[player_index].oiled_timer = 7.5
+        for player_index_1 in range(len(self.players)):
+            for player_index_2 in range(len(self.players)):
+                if player_index_1 < player_index_2:
+                    if len(self.players[player_index_1].poly
+                                   .shapes_collide(self.players[player_index_2].poly).points) != 0:
+                        if self.players[player_index_1].apply_invert:
+                            self.players[player_index_2].is_inverted = True
+                            self.players[player_index_2].inverted_timer = 6
+                            self.players[player_index_1].apply_invert = False
+                            self.players[player_index_1].invert_timer = -1
+                        if self.players[player_index_2].apply_invert:
+                            self.players[player_index_1].is_inverted = True
+                            self.players[player_index_1].inverted_timer = 6
+                            self.players[player_index_2].apply_invert = False
+                            self.players[player_index_2].invert_timer = -1
+                        if self.players[player_index_1].apply_teleport:
+                            self.teleport(self.players[player_index_2])
+                            self.players[player_index_1].apply_teleport = False
+                            self.players[player_index_1].teleport_timer = -1
+                        if self.players[player_index_2].apply_teleport:
+                            self.teleport(self.players[player_index_1])
+                            self.players[player_index_2].apply_teleport = False
+                            self.players[player_index_2].teleport_timer = -1
 
     def update(self, dt):
         self.space.step(dt)
@@ -354,7 +402,17 @@ class GameManager:
         for clock_index in range(len(self.run_clocks)):
             if self.run_clocks[clock_index] != -1:
                 self.run_clocks[clock_index] += dt
-
+        for player_index in range(len(self.players)):
+            if self.players[player_index].fuel <= 0:
+                if self.carriers.count(player_index) > 0:
+                    carrier_index = self.carriers.index(player_index)
+                    self.carriers[carrier_index] = -1
+                    self.destination_circles[carrier_index].delete()
+                    self.destination_circles[carrier_index] = None
+                    self.run_clocks[carrier_index] = -1
+                    self.get_out_of_car_timers[carrier_index] = -1
+                    self.tuple_destinations[carrier_index] = -1
+                    self.passenger_can_request = True
         out_count = 0
         for player in self.players:
             if player.fuel <= 0:

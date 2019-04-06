@@ -2,8 +2,9 @@ import pyglet
 from src.py_aux import consts
 from src.utils import Control
 
+
 class EndScreen:
-    def __init__(self, total_scores = [1750,1500,1420,1600]):
+    def __init__(self, total_scores):
         num_players = len(total_scores)
         self.background_graphics = []
         self.background_elements = []
@@ -72,7 +73,7 @@ class EndScreen:
                                                            anchor_x="center")]
             self.money_labels += [pyglet.text.Label("$00000",
                                                     font_name="impact",
-                                                    font_size=60,
+                                                    font_size=55,
                                                     x=center_x,
                                                     y=consts.WINDOW_HEIGHT - 200,
                                                     align="center",
@@ -91,7 +92,7 @@ class EndScreen:
                 self.money_amount[i] += dt*self.ANIMATION_SCALE
                 if self.money_amount[i] > self.total_scores[i]:
                     self.money_amount[i] = self.total_scores[i]
-                if self.money_amount[i] // 20 >= self.stack_sizes[i]:
+                if self.money_amount[i] // 10 >= self.stack_sizes[i]:
                     self.stack_sprites += [pyglet.sprite.Sprite(self.money_image,
                                                                 center_x,
                                                                 self.stack_tops[i],

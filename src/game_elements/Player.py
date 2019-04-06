@@ -20,6 +20,12 @@ class Player:
         self.accelerator_timer = -1
         self.is_oiled = False
         self.oiled_timer = -1
+        self.apply_invert = False
+        self.is_inverted = False
+        self.invert_timer = -1
+        self.inverted_timer = -1
+        self.apply_teleport = False
+        self.teleport_timer = -1
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
 
@@ -51,6 +57,24 @@ class Player:
             else:
                 self.oiled_timer = -1
                 self.is_oiled = False
+        if self.invert_timer != -1:
+            if self.invert_timer > 0:
+                self.invert_timer -= dt
+            else:
+                self.invert_timer = -1
+                self.apply_invert = False
+        if self.inverted_timer != -1:
+            if self.inverted_timer > 0:
+                self.inverted_timer -= dt
+            else:
+                self.inverted_timer = -1
+                self.is_inverted = False
+        if self.teleport_timer != -1:
+            if self.teleport_timer > 0:
+                self.teleport_timer -= dt
+            else:
+                self.teleport_timer = -1
+                self.apply_teleport = False
         local_velocity = self.body.velocity_at_local_point(Vec2d.zero()).rotated(-self.body.angle)
         forward_velocity = local_velocity.dot(Vec2d(1, 0))
         front_wheel_velocity = self.body.velocity_at_local_point(Vec2d(130/8, 0)).rotated(-self.body.angle)
@@ -61,6 +85,8 @@ class Player:
         target_direction.y -= Control.control.get_axis("Down" + str(self.player_id))
         target_direction.x -= Control.control.get_axis("Left" + str(self.player_id))
         target_direction.x += Control.control.get_axis("Right" + str(self.player_id))
+        if self.is_inverted:
+            target_direction *= -1
         if abs(target_direction.x) > abs(target_direction.y):
             target_direction = target_direction.normalized()*abs(target_direction.x)
         else:
