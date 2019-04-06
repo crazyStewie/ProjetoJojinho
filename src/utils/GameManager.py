@@ -67,16 +67,18 @@ class GameManager:
                                    pymunk.vec2d.Vec2d(0, 0), 4))
         self.space.add(self.bounding_body, self.bounding_segments[0], self.bounding_segments[1],
                        self.bounding_segments[2], self.bounding_segments[3])
-
+        self.map.generate_body()
+        if self.map.col_body is not None:
+            self.space.add(self.map.col_body, self.map.col_shapes)
         self.HUDs = []
         for player_index in range(len(self.players)):
             self.HUDs.append(HUD.HUD(self.players[player_index], (consts.WINDOW_WIDTH/2 - len(self.players)/2 *
                                                                   HUD.HUD_WIDTH + HUD.HUD_WIDTH*player_index, 0)))
+        self.options = pymunk.pyglet_util.DrawOptions()
 
     def update(self, dt):
         for player in self.players:
             player.update(dt)
-            player.fuel -= dt*0.05
         for passenger in self.passengers:
             passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
             if passenger.relative_position < 0:
@@ -227,6 +229,8 @@ class GameManager:
             passenger.sprite.draw()
         for player in self.players:
             player.draw()
+        self.map.draw_front()
+        self.space.debug_draw(self.options)
         for HUD_ in self.HUDs:
             HUD_.draw()
         for circle in self.passenger_circles:

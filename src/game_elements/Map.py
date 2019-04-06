@@ -1,6 +1,6 @@
 from pymunk.vec2d import Vec2d
 from src.utils import AngleHelper
-
+import pymunk
 
 class Map:
     def __init__(self):
@@ -16,6 +16,19 @@ class Map:
         self.front_sprite = None
         self.streets_length = []
         self.sidewalks_length = []
+        self.collision_vertices = []
+        self.collision_edges = []
+        self.col_body = None
+        self.col_shapes = []
+
+    def generate_body(self):
+        self.col_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        for edge in self.collision_edges:
+            self.col_shapes += [pymunk.shapes.Segment(self.col_body,
+                                                      Vec2d(self.collision_vertices[edge[0]]),
+                                                      Vec2d(self.collision_vertices[edge[1]]), 8)]
+        for cvertex in self.collision_vertices:
+            self.col_shapes += [pymunk.shapes.Circle(self.col_body, 8, cvertex)]
 
     def generate_matrix(self):
         self.distances.clear()

@@ -72,8 +72,8 @@ class __Editor:
 
     def get_grid_mouse(self):
         if self.grid_enabled:
-            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x) % self.grid_size + self.grid_size/2,
-                         Mouse.mouse.position.y - (Mouse.mouse.position.y) % self.grid_size + self.grid_size/2)
+            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x + self.grid_size/2) % self.grid_size + self.grid_size/2,
+                         Mouse.mouse.position.y - (Mouse.mouse.position.y + self.grid_size/2) % self.grid_size + self.grid_size/2)
         return Mouse.mouse.position
 
     def make_grid(self):
@@ -82,13 +82,13 @@ class __Editor:
             self.grid = None
         verts = []
         color = []
-        x = self.grid_size/2
+        x = 0
         while x < WINDOW_WIDTH:
             verts += [x, 0,
                                 x, WINDOW_HEIGHT]
             color += [255, 255, 255, 100, 255, 255, 255, 100]
             x += self.grid_size
-        y = self.grid_size/2
+        y = 0
         while y < WINDOW_HEIGHT:
             verts += [0, y, WINDOW_WIDTH, y]
             color += [255, 255, 255, 100, 255, 255, 255, 100]
@@ -230,7 +230,10 @@ class __Editor:
         elif self.mode == COL_MODE:
             self.crossings = self.map.collision_vertices
             self.edges = self.map.collision_edges
-
+        if self.mode == MAP_MODE:
+            hover_radius = self.map.STREET_WIDTH/2
+        else:   # self.mode == COL_MODE:
+            hover_radius = self.collision_marker_size/2
         self.check_mouse_over()
 
         if self.is_moving is not None:
@@ -240,10 +243,10 @@ class __Editor:
                 if Toolbar.toolbar.is_hover or not (0 < self.get_grid_mouse().x < WINDOW_WIDTH and 0 < self.get_grid_mouse().y < WINDOW_HEIGHT):
                     print("invalid move, invalid cursor position at ", Mouse.mouse.position.x, ", ", Mouse.mouse.position.y)
                     is_move_valid = False
-                for i in range(len(self.map.crossings)):
+                for i in range(len(self.crossings)):
                     if i != self.is_moving:
-                        cross_pos = Vec2d(self.map.crossings[i])
-                        if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
+                        cross_pos = Vec2d(self.crossings[i])
+                        if cross_pos.get_distance(self.get_grid_mouse()) < 2*hover_radius:
                             print("invalid move")
                             is_move_valid = False
                 if not is_move_valid:
@@ -280,7 +283,7 @@ class __Editor:
                         is_add_valid = True
                         for cross in self.crossings:
                             cross_pos = Vec2d(cross)
-                            if cross_pos.get_distance(self.get_grid_mouse()) < self.map.STREET_WIDTH:
+                            if cross_pos.get_distance(self.get_grid_mouse()) < 2*hover_radius:
                                 is_add_valid = False
                         if is_add_valid:
                             self.crossings.append((self.get_grid_mouse().x, self.get_grid_mouse().y))
@@ -352,10 +355,18 @@ class __Editor:
         self.window.set_fullscreen(False)
         self.window.set_visible(False)
         print("opening a file")
+        tmp_map = None
         self.filepath = tkinter.filedialog.askopenfilename()
         if self.filepath is not None and self.filepath.endswith(".pickle"):
             with open(self.filepath, "rb") as f:
-                self.map = pickle.load(f)
+                tmp_map = pickle.load(f)
+        if tmp_map is not None:
+            self.map = Map()
+            self.map.crossings = tmp_map.crossings
+            self.map.streets = tmp_map.streets
+            if hasattr(tmp_map, 'collision_vertices'):
+                self.map.collision_vertices = tmp_map.collision_vertices
+                self.map.collision_edges = tmp_map.collision_edges
         self.window.set_fullscreen(True)
         self.window.set_visible(True)
 
