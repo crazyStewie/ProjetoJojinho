@@ -20,6 +20,8 @@ class Map:
         self.collision_edges = []
         self.col_body = None
         self.col_shapes = []
+        self.spawn_positions = [(100, 100), (150, 100), (200, 100), (250, 100)]
+        self.spawn_rotations = [0, 0, 0, 0]
 
     def generate_body(self):
         self.col_body = pymunk.Body(body_type=pymunk.Body.STATIC)

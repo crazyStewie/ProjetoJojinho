@@ -43,7 +43,7 @@ class GameManager:
         self.carriers = []
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
-        for i in range(5000):
+        for i in range(1000):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
             random_direction = math.floor(2*random())*2 - 1
@@ -55,7 +55,7 @@ class GameManager:
         self.space.threads = 4
 
         for i in range(number_players):
-            self.players.append(Player(i, 100, 100+50*i, 0, self.space))
+            self.players.append(Player(i, self.map.spawn_positions[i][0], self.map.spawn_positions[i][1], self.map.spawn_rotations[i], self.space))
 
         self.bounding_body = pymunk.Body(1, body_type=pymunk.Body.STATIC)
         self.bounding_segments = \
