@@ -5,7 +5,7 @@ from src.utils import Control
 from src.game_elements.Player import Player
 from src.py_aux import consts
 import pymunk
-
+from src.gui.EndScreen import EndScreen
 MAIN_MENU = 0
 IN_GAME = 1
 POST_GAME = 3
@@ -22,6 +22,7 @@ class Game(pyglet.window.Window):
         self.game_manager = None
         self.fps_display = pyglet.window.FPSDisplay(self)
         self.frame_count = 0
+        self.post_game_screen = None
         # debug
         # self.space = pymunk.Space()
         #
@@ -47,7 +48,7 @@ class Game(pyglet.window.Window):
             print("delta = " + str(dt))
             print("fps   = " + str(1/dt))
             dt = 1/10
-        if self.gui.mode == "game" and self.current_state != IN_GAME:
+        if self.gui.mode == "game" and self.current_state == MAIN_MENU:
             self.current_state = IN_GAME
             self.game_manager = GameManager(self.gui.num_players, self.gui.game_level)
         if self.current_state == IN_GAME:
@@ -55,9 +56,19 @@ class Game(pyglet.window.Window):
             # self.player1.update(dt)
             # self.space.step(dt)
             self.game_manager.update(dt)
-            self.gui.update(dt)
+            if self.game_manager.is_over:
+                self.current_state = POST_GAME
         if self.current_state == MAIN_MENU:
             self.gui.update(dt)
+        if self.current_state == POST_GAME:
+            if self.post_game_screen is None:
+                self.post_game_screen = EndScreen(self.game_manager.get_scores())
+                self.game_manager = None
+            self.post_game_screen.update(dt)
+            if self.post_game_screen.is_over:
+                self.post_game_screen.destroy()
+                self.current_state = MAIN_MENU
+                self.gui.setup_initial_menu(self.gui.params)
         pass
 
     def on_draw(self):
@@ -68,5 +79,7 @@ class Game(pyglet.window.Window):
             self.game_manager.draw()
             # self.player0.draw()
             # self.player1.draw()
+        if self.current_state == POST_GAME:
+            self.post_game_screen.draw()
         self.fps_display.draw()
         pass
