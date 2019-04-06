@@ -33,6 +33,7 @@ class GameManager:
         self.MAX_PASSENGERS_REQUESTING = self.number_players//2
         self.passenger_can_request = True
         self.passenger_timer = -1
+        self.money_constant = 0.05
         if self.MAX_PASSENGERS_REQUESTING == 1:
             self.requesting_passengers = [-1]
             self.get_in_car_timers = [-1]
@@ -40,6 +41,7 @@ class GameManager:
             self.passenger_circles = [None]
             self.destination_circles = [None]
             self.tuple_destinations = [-1]
+            self.run_clocks = [-1]
             self.get_out_of_car_timers = [-1]
             self.carriers = [-1]
         else:
@@ -49,6 +51,7 @@ class GameManager:
             self.passenger_circles = [None, None]
             self.destination_circles = [None, None]
             self.tuple_destinations = [-1, -1]
+            self.run_clocks = [-1, -1]
             self.get_out_of_car_timers = [-1, -1]
             self.carriers = [-1, -1]
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
@@ -144,6 +147,9 @@ class GameManager:
                         if self.get_in_car_timers[requesting_passenger_index] > 0:
                             self.get_in_car_timers[requesting_passenger_index] -= dt
                         else:
+                            initial_sidewalk = self.requesting_passengers[requesting_passenger_index].sidewalk
+                            initial_relative_position = \
+                                self.requesting_passengers[requesting_passenger_index].relative_position
                             self.passenger_circles[requesting_passenger_index].delete()
                             self.passenger_circles[requesting_passenger_index] = None
                             self.passengers.remove(self.requesting_passengers[requesting_passenger_index])
@@ -165,8 +171,9 @@ class GameManager:
                                                                  ("c3B", (120, 240, 90) * 32))
                             self.destination_circles[requesting_passenger_index] = circle
                             self.tuple_destinations[requesting_passenger_index] = \
-                                (random_sidewalk, random_relative_position)
+                                (initial_sidewalk, initial_relative_position, random_sidewalk, random_relative_position)
                             self.carriers[requesting_passenger_index] = player_index
+                            self.run_clocks[requesting_passenger_index] = 0
                 else:
                     if requesting_position.get_distance(self.players[player_index].body.position) > 24 \
                             and self.getting_in_car_players[requesting_passenger_index] == player_index:
@@ -178,9 +185,9 @@ class GameManager:
             if self.carriers[carrier_index] == -1:
                 continue
             destination_position = Vec2d(
-                self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][0])) + \
-                    self.map.get_sidewalk_direction(self.tuple_destinations[carrier_index][0]) * \
-                    self.tuple_destinations[carrier_index][1]
+                self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][2])) + \
+                    self.map.get_sidewalk_direction(self.tuple_destinations[carrier_index][2]) * \
+                    self.tuple_destinations[carrier_index][3]
             for player_index in range(len(self.players)):
                 if destination_position.get_distance(self.players[player_index].body.position) < 24 \
                         and player_index == self.carriers[carrier_index]:
@@ -193,16 +200,33 @@ class GameManager:
                             self.destination_circles[carrier_index].delete()
                             self.destination_circles[carrier_index] = None
                             self.carriers[carrier_index] = -1
-                            position = Vec2d(
-                                self.map.sidewalk_crossings[self.map.sidewalks[
-                                    self.tuple_destinations[carrier_index][0]][0]]) + \
-                                       self.map.get_sidewalk_direction(
-                                           self.tuple_destinations[carrier_index][0]) * \
-                                       self.tuple_destinations[carrier_index][1]
-                            self.passengers.append(Passerby(self.tuple_destinations[carrier_index][0],
-                                                            self.tuple_destinations[carrier_index][1],
+                            position = Vec2d(self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][2])) + \
+                                       self.map.get_sidewalk_direction(self.tuple_destinations[carrier_index][2]) * \
+                                       self.tuple_destinations[carrier_index][3]
+                            self.passengers.append(Passerby(self.tuple_destinations[carrier_index][2],
+                                                            self.tuple_destinations[carrier_index][3],
                                                             math.floor(random()*2)*2 - 1, (position.x, position.y),
                                                             self.passerby_batch))
+                            if round(self.tuple_destinations[carrier_index][1] /
+                                     self.map.sidewalks_length[self.tuple_destinations[carrier_index][0]]) == 0:
+                                initial_crossing = \
+                                    self.map.sidewalk_first_crossing_index(self.tuple_destinations[carrier_index][0])
+                            else:
+                                initial_crossing = \
+                                    self.map.sidewalk_second_crossing_index(self.tuple_destinations[carrier_index][0])
+                            if round(self.tuple_destinations[carrier_index][3]/
+                                     self.map.sidewalks_length[self.tuple_destinations[carrier_index][2]]) == 0:
+                                final_crossing = \
+                                    self.map.sidewalk_first_crossing_index(self.tuple_destinations[carrier_index][2])
+                            else:
+                                final_crossing = \
+                                    self.map.sidewalk_second_crossing_index(self.tuple_destinations[carrier_index][2])
+                            time_penalty = (self.map.distances[initial_crossing][final_crossing] /
+                                           self.players[player_index].MAX_SPEED) / self.run_clocks[carrier_index]
+                            payment = \
+                                math.floor(self.money_constant * self.map.distances[initial_crossing][final_crossing])
+                            self.run_clocks[carrier_index] = -1
+                            self.players[player_index].money += math.floor(payment*0.6 + payment * 0.4 * time_penalty)
                             self.get_out_of_car_timers[carrier_index] = -1
                             self.tuple_destinations[carrier_index] = -1
                             self.passenger_can_request = True
@@ -252,6 +276,9 @@ class GameManager:
         self.update_passenger_can_request(dt)
         self.update_requesting_passengers(dt)
         self.update_carriers(dt)
+        for clock_index in range(len(self.run_clocks)):
+            if self.run_clocks[clock_index] != -1:
+                self.run_clocks[clock_index] += dt
 
     def draw(self):
         self.map.draw_back()
