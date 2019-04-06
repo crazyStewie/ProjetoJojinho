@@ -8,7 +8,7 @@ from src.tools.map_creator.toolbar import Toolbar
 from src.tools.map_creator import Mouse
 from src.tools.map_creator.ToolConsts import *
 from src.utils import Control
-
+import math
 MAP_MODE = 0
 COL_MODE = 1
 
@@ -45,9 +45,35 @@ class __Editor:
         self.col_edges_vlist = None
         self.col_vertices_vlists = []
         self.collision_marker_size = 12
+        self.setting_spawn = None
+        self.spawn_gfx = []
         Control.control.set_input("grid_plus", [pyglet.window.key.UP])
         Control.control.set_input("grid_minus", [pyglet.window.key.DOWN])
         Control.control.set_input("change_mode", [pyglet.window.key.SPACE])
+
+    def update_spawn(self):
+        for sp in self.spawn_gfx:
+            sp.delete()
+        self.spawn_gfx = []
+        for i in range(len(self.map.spawn_positions)):
+            color = (240,230,60)
+            if i == 1:
+                color = (20,240,90)
+            elif i == 2:
+                color = (240,120,90)
+            elif i == 3:
+                color = (20,90,240)
+            verts = []
+            verts += self.make_circle(self.map.spawn_positions[i][0], self.map.spawn_positions[i][1], 16, 16)
+            self.spawn_gfx += [pyglet.graphics.vertex_list(16, ("v2f", verts), ("c3B", color*16))]
+            verts = []
+            center = Vec2d(self.map.spawn_positions[i])
+            dir_vec = Vec2d(8*math.sqrt(2), 0).rotated(self.map.spawn_rotations[i])
+            center += dir_vec
+            for i in range(4):
+                verts += [(center+dir_vec)[0], (center + dir_vec)[1]]
+                dir_vec = dir_vec.perpendicular()
+            self.spawn_gfx += [pyglet.graphics.vertex_list(4, ("v2f", verts), ("c3B", color * 4))]
 
     def update_collision_draw(self):
         if self.col_edges_vlist is not None:
@@ -72,8 +98,8 @@ class __Editor:
 
     def get_grid_mouse(self):
         if self.grid_enabled:
-            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x + self.grid_size/2) % self.grid_size + self.grid_size/2,
-                         Mouse.mouse.position.y - (Mouse.mouse.position.y + self.grid_size/2) % self.grid_size + self.grid_size/2)
+            return Vec2d(Mouse.mouse.position.x - (Mouse.mouse.position.x-WINDOW_WIDTH/2 + self.grid_size/2) % self.grid_size + self.grid_size/2,
+                         Mouse.mouse.position.y - (Mouse.mouse.position.y-WINDOW_HEIGHT/2 + self.grid_size/2) % self.grid_size + self.grid_size/2)
         return Mouse.mouse.position
 
     def make_grid(self):
@@ -82,16 +108,21 @@ class __Editor:
             self.grid = None
         verts = []
         color = []
-        x = 0
+        x = self.grid_size
+        verts += [WINDOW_WIDTH/2, 0, WINDOW_WIDTH/2, WINDOW_HEIGHT]
+        color += [255, 255, 255, 100] * 2
         while x < WINDOW_WIDTH:
-            verts += [x, 0,
-                                x, WINDOW_HEIGHT]
-            color += [255, 255, 255, 100, 255, 255, 255, 100]
+            verts += [WINDOW_WIDTH/2+x, 0, WINDOW_WIDTH/2+x, WINDOW_HEIGHT]
+            verts += [WINDOW_WIDTH/2-x, 0, WINDOW_WIDTH/2-x, WINDOW_HEIGHT]
+            color += [255, 255, 255, 100]*4
             x += self.grid_size
-        y = 0
-        while y < WINDOW_HEIGHT:
-            verts += [0, y, WINDOW_WIDTH, y]
-            color += [255, 255, 255, 15, 255, 255, 255, 15]
+        y = self.grid_size
+        verts += [0, WINDOW_HEIGHT/2, WINDOW_WIDTH, WINDOW_HEIGHT/2]
+        color += [255, 255, 255, 15] * 2
+        while y < WINDOW_HEIGHT/2:
+            verts += [0, WINDOW_HEIGHT/2+y, WINDOW_WIDTH, WINDOW_HEIGHT/2+y]
+            verts += [0, WINDOW_HEIGHT/2-y, WINDOW_WIDTH, WINDOW_HEIGHT/2-y]
+            color += [255, 255, 255, 15]*4
             y += self.grid_size
         self.grid = pyglet.graphics.vertex_list(len(verts)//2, ("v2f", verts), ("c4B", color))
 
@@ -321,6 +352,20 @@ class __Editor:
                     if self.is_unlinking is None:
                         if self.is_hover is not None and Mouse.mouse.is_just_pressed(0):
                             self.is_unlinking = self.is_hover
+                if Toolbar.toolbar.selected.tool == "set spawn points":
+                    if Mouse.mouse.is_just_pressed(0):
+                        if self.setting_spawn is None:
+                            self.setting_spawn = 0
+                        elif self.setting_spawn == 3:
+                            self.setting_spawn = 0
+                        else:
+                            self.setting_spawn += 1
+                        self.map.spawn_positions[self.setting_spawn] = Mouse.mouse.position.int_tuple
+                    if Mouse.mouse.is_pressed(0):
+                        if self.setting_spawn is not None:
+                            self.map.spawn_rotations[self.setting_spawn] = (Mouse.mouse.position - Vec2d(self.map.spawn_positions[self.setting_spawn])).angle
+                else:
+                    self.setting_spawn = None
                 if Toolbar.toolbar.selected.tool == "show sidewalks":
                     self.showing_sidewalks = True
                     self.generate_sidewalks()
@@ -331,11 +376,14 @@ class __Editor:
         self.update_draw_map()
         self.update_collision_draw()
         self.update_link_indicator()
+        self.update_spawn()
         pass
 
     def draw(self):
         self.draw_map()
         self.draw_grid()
+        for sp in self.spawn_gfx:
+            sp.draw(pyglet.gl.GL_POLYGON)
         if self.hover_indicator:
             self.hover_indicator.draw(pyglet.gl.GL_LINE_LOOP)
         if self.link_indicator:
@@ -349,7 +397,6 @@ class __Editor:
                 self.sidewalks.draw(pyglet.gl.GL_LINES)
                 for cross in self.side_crossings:
                     cross.draw(pyglet.gl.GL_POLYGON)
-
 
     def open(self):
         self.window.set_fullscreen(False)
@@ -367,6 +414,12 @@ class __Editor:
             if hasattr(tmp_map, 'collision_vertices'):
                 self.map.collision_vertices = tmp_map.collision_vertices
                 self.map.collision_edges = tmp_map.collision_edges
+            if hasattr(tmp_map, 'spawn_positions'):
+                if len(tmp_map.spawn_positions) == 4:
+                    self.map.spawn_positions = tmp_map.spawn_positions
+            if hasattr(tmp_map, 'spawn_rotations'):
+                if len(tmp_map.spawn_rotations) == 4:
+                    self.map.spawn_rotations = tmp_map.spawn_rotations
         self.window.set_fullscreen(True)
         self.window.set_visible(True)
 

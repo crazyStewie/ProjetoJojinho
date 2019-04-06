@@ -68,7 +68,7 @@ class GameManager:
         self.space.threads = 4
 
         for i in range(number_players):
-            self.players.append(Player(i, 100, 100+50*i, 0, self.space))
+            self.players.append(Player(i, self.map.spawn_positions[i][0], self.map.spawn_positions[i][1], self.map.spawn_rotations[i], self.space))
 
         self.bounding_body = pymunk.Body(1, body_type=pymunk.Body.STATIC)
         self.bounding_segments = \
