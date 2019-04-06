@@ -6,7 +6,7 @@ HUD_HEIGHT = 80
 POWER_UP_POSITION = (32, 32)
 FUEL_BAR_POSITION = (71, 3)
 MONEY_SYMBOL_WIDTH = 15
-MONEY_LABEL_POSITION = (25, 73)
+MONEY_LABEL_POSITION = (40, 73)
 
 
 class HUD:
@@ -24,11 +24,19 @@ class HUD:
         fuel_bar_image = pyglet.resource.image('fuel_bar_temp.png')
         self.fuel_bar_sprite = pyglet.sprite.Sprite(fuel_bar_image, pos[0] + FUEL_BAR_POSITION[0],
                                                     pos[1] + FUEL_BAR_POSITION[1])
-        self.value_label = pyglet.text.Label(text=str(self.player.money), x=pos[0] + MONEY_LABEL_POSITION[0],
+        self.value_label = pyglet.text.Label(text=self.fill_with_zeros(self.player.money, 5), x=pos[0] + MONEY_LABEL_POSITION[0],
                                              y=pos[1] + MONEY_LABEL_POSITION[1], anchor_x="center", anchor_y="center",
                                              color=(255, 255, 255, 255), font_size=12)
 
+    @staticmethod
+    def fill_with_zeros(number, length):
+        string = str(number)
+        while len(string) < length:
+            string = "0" + string
+        return string
+
     def update(self, dt):
+        self.value_label.text = self.fill_with_zeros(self.player.money, 5)
         self.fuel_bar_sprite.scale_y = self.player.fuel
 
     def draw(self):
