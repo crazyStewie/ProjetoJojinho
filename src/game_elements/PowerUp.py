@@ -7,18 +7,15 @@ class PowerUp:
             self.name = "accelerator"
             self.time_range = (5.0, 8.0)
         elif type_ == 1:
-            self.name = "GPS"
-            self.time_range = (3.0, 5.0)
-        elif type_ == 2:
             self.name = "oil"
             self.time_range = (4.0, 7.0)
-        elif type_ == 3:
+        elif type_ == 2:
             self.name = "invert"
             self.time_range = (7.0, 9.0)
-        elif type_ == 4:
+        elif type_ == 3:
             self.name = "teleport"
             self.time_range = (4.5, 7.5)
-        elif type_ == 5:
+        elif type_ == 4:
             self.name = "self_teleport"
             self.time_range = (3.5, 5.5)
         pyglet.resource.path = ["../assets/sprites"]

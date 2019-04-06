@@ -16,6 +16,10 @@ class Player:
         self.player_id = player_id
         self.FUEL_SCALE = 0.002
         self.power_up = None
+        self.accelerator_bonus = False
+        self.accelerator_timer = -1
+        self.is_oiled = False
+        self.oiled_timer = -1
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
 
@@ -35,6 +39,18 @@ class Player:
         self.power_up = None
 
     def update(self, dt):
+        if self.accelerator_timer != -1:
+            if self.accelerator_timer > 0:
+                self.accelerator_timer -= dt
+            else:
+                self.accelerator_timer = -1
+                self.accelerator_bonus = False
+        if self.oiled_timer != -1:
+            if self.oiled_timer > 0:
+                self.oiled_timer -= dt
+            else:
+                self.oiled_timer = -1
+                self.is_oiled = False
         local_velocity = self.body.velocity_at_local_point(Vec2d.zero()).rotated(-self.body.angle)
         forward_velocity = local_velocity.dot(Vec2d(1, 0))
         front_wheel_velocity = self.body.velocity_at_local_point(Vec2d(130/8, 0)).rotated(-self.body.angle)
@@ -52,19 +68,27 @@ class Player:
         if target_direction.length < 0.1:
             target_direction = Vec2d.zero()
         impulse = Vec2d(0, 0)
-        if forward_velocity < self.MAX_SPEED:
-            impulse += dt*Vec2d(1, 0)*(self.MAX_SPEED - forward_velocity)*self.body.mass*target_direction.length
-            dfuel = -impulse.length*self.FUEL_SCALE/self.MAX_SPEED
+        if self.accelerator_bonus:
+            max_speed = 2 * self.MAX_SPEED
+        else:
+            max_speed = self.MAX_SPEED
+        if forward_velocity < max_speed:
+            impulse += dt*Vec2d(1, 0)*(max_speed - forward_velocity)*self.body.mass*target_direction.length
+            dfuel = -impulse.length*self.FUEL_SCALE/max_speed
             if dfuel >=0:
                 dfuel = -1/(300)*dt
             self.fuel += dfuel
             if self.fuel <= 0:
                 self.fuel = 0
                 impulse = Vec2d.zero()
-        if impulse != Vec2d.zero():
-            impulse += self.FRICTION*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
+        if self.is_oiled:
+            friction = self.FRICTION // 6
         else:
-            impulse += -self.FRICTION*dt*local_velocity*self.body.mass
+            friction = self.FRICTION
+        if impulse != Vec2d.zero():
+            impulse += friction*dt*Vec2d(0, 1)*local_velocity.dot(Vec2d(0, -1))*self.body.mass
+        else:
+            impulse += -friction*dt*local_velocity*self.body.mass
         self.body.apply_impulse_at_local_point(impulse, Vec2d.zero())
 
         if target_direction.length > 0.1 and self.fuel > 0:

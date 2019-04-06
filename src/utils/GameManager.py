@@ -10,6 +10,7 @@ from src.game_elements.Map import Map
 from src.game_elements.Player import Player
 from src.game_elements.PowerUp import PowerUp
 from src.gui import HUD
+from src.utils import Control
 PASSENGER_SPEED = 50
 
 
@@ -33,12 +34,15 @@ class GameManager:
         self.players = []
         self.passengers = []
         self.MAX_PASSENGERS_REQUESTING = self.number_players//2
-        self.TYPES_POWER_UP = 6
+        self.TYPES_POWER_UP = 5
         self.passenger_can_request = True
         self.passenger_timer = -1
         self.money_constant = 0.05
         self.power_up_timer = -1
         self.next_power_up = None
+        self.oil_puddles = []
+        self.oil_puddles_timers = []
+        self.oil_puddles_causers = []
         if self.MAX_PASSENGERS_REQUESTING == 1:
             self.requesting_passengers = [-1]
             self.get_in_car_timers = [-1]
@@ -268,6 +272,38 @@ class GameManager:
         self.power_up_timer = -1
         self.next_power_up = None
 
+    def check_power_ups(self, dt):
+        for oil_puddle_timer_index in range(len(self.oil_puddles_timers)):
+            if self.oil_puddles_timers[oil_puddle_timer_index] > 0:
+                self.oil_puddles_timers[oil_puddle_timer_index] -= dt
+            else:
+                self.oil_puddles_timers.pop(oil_puddle_timer_index)
+                self.oil_puddles.pop(oil_puddle_timer_index)
+                self.oil_puddles_causers.pop(oil_puddle_timer_index)
+        for player_index in range(len(self.players)):
+            if Control.control.just_pressed("Power-up%d" % player_index) and \
+                    self.players[player_index].power_up is not None:
+                if self.players[player_index].power_up.name == "accelerator":
+                    self.players[player_index].accelerator_bonus = True
+                    self.players[player_index].accelerator_timer = 1.5
+                elif self.players[player_index].power_up.name == "oil":
+                    pyglet.resource.path = ["../assets/sprites"]
+                    pyglet.resource.reindex()
+                    oil_image = pyglet.resource.image("spilled_oil.png")
+                    oil_image.anchor_x = oil_image.width // 2
+                    oil_image.anchor_y = oil_image.height // 2
+                    self.oil_puddles.append(pyglet.sprite.Sprite(oil_image, self.players[player_index].body.position.x,
+                                                                 self.players[player_index].body.position.y))
+                    self.oil_puddles_timers.append(5)
+                    self.oil_puddles_causers.append(player_index)
+                self.players[player_index].power_up = None
+            for oil_puddle_index in range(len(self.oil_puddles)):
+                if Vec2d(self.oil_puddles[oil_puddle_index].position).\
+                        get_distance(self.players[player_index].body.position) < 30 and \
+                        player_index != self.oil_puddles_causers[oil_puddle_index]:
+                    self.players[player_index].is_oiled = True
+                    self.players[player_index].oiled_timer = 7.5
+
     def update(self, dt):
         self.space.step(dt)
         for player in self.players:
@@ -314,6 +350,7 @@ class GameManager:
         self.update_requesting_passengers(dt)
         self.update_carriers(dt)
         self.update_power_ups(dt)
+        self.check_power_ups(dt)
         for clock_index in range(len(self.run_clocks)):
             if self.run_clocks[clock_index] != -1:
                 self.run_clocks[clock_index] += dt
@@ -351,4 +388,6 @@ class GameManager:
         for power_up in self.power_ups:
             if power_up is not None:
                 power_up.sprite.draw()
+        for oil_puddle in self.oil_puddles:
+            oil_puddle.draw()
         self.map.draw_front()
