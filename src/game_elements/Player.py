@@ -26,6 +26,7 @@ class Player:
         self.inverted_timer = -1
         self.apply_teleport = False
         self.teleport_timer = -1
+        self.wear_off = False
         pyglet.resource.path = ["../assets/sprites"]
         pyglet.resource.reindex()
 
@@ -57,24 +58,28 @@ class Player:
             else:
                 self.oiled_timer = -1
                 self.is_oiled = False
+                self.wear_off = True
         if self.invert_timer != -1:
             if self.invert_timer > 0:
                 self.invert_timer -= dt
             else:
                 self.invert_timer = -1
                 self.apply_invert = False
+                self.wear_off = True
         if self.inverted_timer != -1:
             if self.inverted_timer > 0:
                 self.inverted_timer -= dt
             else:
                 self.inverted_timer = -1
                 self.is_inverted = False
+                self.wear_off = True
         if self.teleport_timer != -1:
             if self.teleport_timer > 0:
                 self.teleport_timer -= dt
             else:
                 self.teleport_timer = -1
                 self.apply_teleport = False
+                self.wear_off = True
         local_velocity = self.body.velocity_at_local_point(Vec2d.zero()).rotated(-self.body.angle)
         forward_velocity = local_velocity.dot(Vec2d(1, 0))
         front_wheel_velocity = self.body.velocity_at_local_point(Vec2d(130/8, 0)).rotated(-self.body.angle)
