@@ -29,9 +29,9 @@ class Map:
         for edge in self.collision_edges:
             self.col_shapes += [pymunk.shapes.Segment(self.col_body,
                                                       Vec2d(self.collision_vertices[edge[0]]),
-                                                      Vec2d(self.collision_vertices[edge[1]]), 8)]
-        for cvertex in self.collision_vertices:
-            self.col_shapes += [pymunk.shapes.Circle(self.col_body, 8, cvertex)]
+                                                      Vec2d(self.collision_vertices[edge[1]]), 1)]
+        #for cvertex in self.collision_vertices:
+        #    self.col_shapes += [pymunk.shapes.Circle(self.col_body, 8, cvertex)]
 
     def generate_matrix(self):
         self.distances.clear()
@@ -180,7 +180,11 @@ class Map:
         return self.sidewalk_crossings[self.sidewalks[sidewalk][1]]
 
     def draw_back(self):
+        if self.back_sprite is not None:
+            self.back_sprite.draw()
         pass
 
     def draw_front(self):
+        if self.front_sprite is not None:
+            self.front_sprite.draw()
         pass

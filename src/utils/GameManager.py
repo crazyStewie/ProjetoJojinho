@@ -67,6 +67,11 @@ class GameManager:
             self.power_ups = [None, None]
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
+        pyglet.resource.path = ["../assets/sprites"]
+        back_img = pyglet.resource.image("maps/back_map" + str(map_number)+".png")
+        front_img = pyglet.resource.image("maps/front_map" + str(map_number) + ".png")
+        self.map.back_sprite = pyglet.sprite.Sprite(back_img)
+        self.map.front_sprite = pyglet.sprite.Sprite(front_img)
         for i in range(100):
             random_sidewalk = math.floor(random()*len(self.map.sidewalks))
             random_position = random()*self.map.sidewalks_length[random_sidewalk]
@@ -428,7 +433,7 @@ class GameManager:
 
     def draw(self):
         self.map.draw_back()
-        self.space.debug_draw(self.options)
+        #self.space.debug_draw(self.options)
         #for passenger in self.passengers:
         #    passenger.sprite.draw()
         self.passerby_batch.draw()
@@ -448,4 +453,3 @@ class GameManager:
                 power_up.sprite.draw()
         for oil_puddle in self.oil_puddles:
             oil_puddle.draw()
-        self.map.draw_front()
