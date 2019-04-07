@@ -76,6 +76,7 @@ class GameManager:
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
         pyglet.resource.path = ["../assets/sprites"]
+        pyglet.resource.reindex()
         back_img = pyglet.resource.image("maps/back_map" + str(map_number)+".png")
         front_img = pyglet.resource.image("maps/front_map" + str(map_number) + ".png")
         self.map.back_sprite = pyglet.sprite.Sprite(back_img)
