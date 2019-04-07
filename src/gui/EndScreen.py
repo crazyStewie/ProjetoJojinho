@@ -25,6 +25,7 @@ class EndScreen:
         self.stack_sizes = [0]*num_players
         self.ANIMATION_SCALE = 250
         self.is_over = False
+        self.play_sound = False
 
     def setup_background(self):
         step = 260
@@ -99,6 +100,7 @@ class EndScreen:
                                                                 batch=self.stacks)]
                     self.stack_sizes[i] += 1
                     self.stack_tops[i] += 20
+                    self.play_sound = True
                 txt = str(int(self.money_amount[i]))
                 while len(txt) < 5:
                     txt = "0"+txt

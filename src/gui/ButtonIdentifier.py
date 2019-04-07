@@ -3,8 +3,9 @@ from src.utils import Control
 
 
 class ButtonIdentifier:
-    def __init__(self, label, pos, joystick, value=None, is_button=False):
+    def __init__(self, label, pos, joystick, gui, value=None, is_button=False):
         self.label = label
+        self.gui = gui
         if value is None:
             self.value = '-'
         else:
@@ -47,6 +48,8 @@ class ButtonIdentifier:
                                 self.value = button_id
                                 self.value_text.text = str(self.value)
                                 self.pressed = 0
+                                self.gui.play_sound = True
+                                self.gui.sound = "select"
                     else:
                         for axis_id in range(len(Control.control.semi_axis[self.joystick])):
                             if Control.control.semi_axis[self.joystick][axis_id] > 0.5:
@@ -55,8 +58,12 @@ class ButtonIdentifier:
                                 self.value = axis_id
                                 self.value_text.text = str(self.value)
                                 self.pressed = 0
+                                self.gui.play_sound = True
+                                self.gui.sound = "select"
                                 break
             if Control.control.just_pressed("ui_action"):
+                self.gui.play_sound = True
+                self.gui.sound = "select"
                 self.pressed = (self.pressed + 1) % 2
         else:
             self.pressed = 0

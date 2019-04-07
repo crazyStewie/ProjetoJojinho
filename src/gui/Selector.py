@@ -3,9 +3,10 @@ from src.utils import Control
 
 
 class Selector:
-    def __init__(self, type_, pos, value=None):
+    def __init__(self, type_, pos, gui, value=None):
         self.x = pos[0]
         self.y = pos[1]
+        self.gui = gui
         self.is_focused = False
         self.type = type_  # type should be "level" or "players"
         if value is None:
@@ -43,11 +44,15 @@ class Selector:
                 self.sprite = self.pulsing_sprite
                 self.decrement()
                 self.value_label.text = str(self.value)
+                self.gui.play_sound = True
+                self.gui.sound = "select"
             if Control.control.just_released("ui_right"):
                 self.timer = 0
                 self.sprite = self.pulsing_sprite
                 self.increment()
                 self.value_label.text = str(self.value)
+                self.gui.play_sound = True
+                self.gui.sound = "select"
             if self.timer >= 0.15:
                 self.sprite = self.default_sprite
             self.timer += dt

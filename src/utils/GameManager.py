@@ -43,6 +43,14 @@ class GameManager:
         self.oil_puddles = []
         self.oil_puddles_timers = []
         self.oil_puddles_causers = []
+        self.music = "gas_gas_gas"
+        self.change_music = False
+        self.sound = None
+        self.play_sound = False
+        self.deja_vu_timer = -1
+        self.end_timer = -1
+        self.last_collision_players = (0, 0)
+        self.last_collision_wall = (0, 0)
         if self.MAX_PASSENGERS_REQUESTING == 1:
             self.requesting_passengers = [-1]
             self.get_in_car_timers = [-1]
@@ -117,6 +125,8 @@ class GameManager:
                 if player == other and position.get_distance(other.body.position) < 400:
                     redo = True
         player.body.position = position
+        self.sound = "warp"
+        self.play_sound = True
 
     def update_passenger_can_request(self, dt):
         if self.passenger_can_request:
@@ -151,6 +161,8 @@ class GameManager:
                                                  self.requesting_passengers.count(-1) + len(self.carriers) - \
                                                  self.carriers.count(-1) < self.MAX_PASSENGERS_REQUESTING
                     self.passenger_timer = -1
+                    self.play_sound = True
+                    self.sound = "call"
 
     def update_requesting_passengers(self, dt):
         for requesting_passenger_index in range(len(self.requesting_passengers)):
@@ -166,7 +178,7 @@ class GameManager:
                 if requesting_position.get_distance(self.players[player_index].body.position) < 24 \
                         and (self.getting_in_car_players[requesting_passenger_index] == player_index
                              or self.getting_in_car_players[requesting_passenger_index] == -1) and \
-                        self.carriers.count(player_index) == 0:
+                        self.carriers.count(player_index) == 0 and self.players[player_index].fuel >= 0:
                     if self.get_in_car_timers[requesting_passenger_index] == -1:
                         self.getting_in_car_players[requesting_passenger_index] = player_index
                         self.get_in_car_timers[requesting_passenger_index] = 0.5
@@ -201,6 +213,8 @@ class GameManager:
                                 (initial_sidewalk, initial_relative_position, random_sidewalk, random_relative_position)
                             self.carriers[requesting_passenger_index] = player_index
                             self.run_clocks[requesting_passenger_index] = 0
+                            self.play_sound = True
+                            self.sound = "enter"
                 else:
                     if requesting_position.get_distance(self.players[player_index].body.position) > 24 \
                             and self.getting_in_car_players[requesting_passenger_index] == player_index:
@@ -258,6 +272,8 @@ class GameManager:
                             self.get_out_of_car_timers[carrier_index] = -1
                             self.tuple_destinations[carrier_index] = -1
                             self.passenger_can_request = True
+                            self.play_sound = True
+                            self.sound = "deliver"
 
     def update_power_ups(self, dt):
         for player in self.players:
@@ -268,6 +284,8 @@ class GameManager:
                         player.power_up is None:
                     player.power_up = self.power_ups[power_up_index]
                     self.power_ups[power_up_index] = None
+                    self.play_sound = True
+                    self.sound = "power_up"
                     break
         if len(self.power_ups) - self.power_ups.count(None) == self.number_players:
             return
@@ -288,8 +306,17 @@ class GameManager:
         self.power_ups.append(self.next_power_up)
         self.power_up_timer = -1
         self.next_power_up = None
+        self.play_sound = True
+        self.sound = "power_up_spawn"
 
     def check_power_ups(self, dt):
+        if self.deja_vu_timer != -1:
+            if self.deja_vu_timer > 0:
+                self.deja_vu_timer -= dt
+            else:
+                self.deja_vu_timer = -1
+                self.change_music = True
+                self.music = "gas_gas_gas"
         for oil_puddle_timer_index in range(len(self.oil_puddles_timers)):
             if self.oil_puddles_timers[oil_puddle_timer_index] > 0:
                 self.oil_puddles_timers[oil_puddle_timer_index] -= dt
@@ -303,6 +330,8 @@ class GameManager:
                 if self.players[player_index].power_up.name == "accelerator":
                     self.players[player_index].accelerator_bonus = True
                     self.players[player_index].accelerator_timer = 1.5
+                    self.play_sound = True
+                    self.sound = "accelerator"
                 elif self.players[player_index].power_up.name == "oil":
                     pyglet.resource.path = ["../assets/sprites"]
                     pyglet.resource.reindex()
@@ -313,12 +342,18 @@ class GameManager:
                                                                  self.players[player_index].body.position.y))
                     self.oil_puddles_timers.append(5)
                     self.oil_puddles_causers.append(player_index)
+                    self.play_sound = True
+                    self.sound = "oil"
                 elif self.players[player_index].power_up.name == "invert":
                     self.players[player_index].apply_invert = True
                     self.players[player_index].invert_timer = 2
+                    self.play_sound = True
+                    self.sound = "change_state"
                 elif self.players[player_index].power_up.name == "teleport":
                     self.players[player_index].apply_teleport = True
                     self.players[player_index].teleport_timer = 2
+                    self.play_sound = True
+                    self.sound = "change_state"
                 elif self.players[player_index].power_up.name == "self_teleport":
                     self.teleport(self.players[player_index])
                 self.players[player_index].power_up = None
@@ -327,7 +362,10 @@ class GameManager:
                         get_distance(self.players[player_index].body.position) < 30 and \
                         player_index != self.oil_puddles_causers[oil_puddle_index]:
                     self.players[player_index].is_oiled = True
-                    self.players[player_index].oiled_timer = 7.5
+                    self.players[player_index].oiled_timer = 20
+                    self.change_music = True
+                    self.music = "deja_vu"
+                    self.deja_vu_timer = 20
         for player_index_1 in range(len(self.players)):
             for player_index_2 in range(len(self.players)):
                 if player_index_1 < player_index_2:
@@ -338,11 +376,15 @@ class GameManager:
                             self.players[player_index_2].inverted_timer = 6
                             self.players[player_index_1].apply_invert = False
                             self.players[player_index_1].invert_timer = -1
+                            self.play_sound = True
+                            self.sound = "invert"
                         if self.players[player_index_2].apply_invert:
                             self.players[player_index_1].is_inverted = True
                             self.players[player_index_1].inverted_timer = 6
                             self.players[player_index_2].apply_invert = False
                             self.players[player_index_2].invert_timer = -1
+                            self.play_sound = True
+                            self.sound = "invert"
                         if self.players[player_index_1].apply_teleport:
                             self.teleport(self.players[player_index_2])
                             self.players[player_index_1].apply_teleport = False
@@ -356,6 +398,10 @@ class GameManager:
         self.space.step(dt)
         for player in self.players:
             player.update(dt)
+            if player.wear_off:
+                self.play_sound = True
+                self.sound = "wear_off"
+                player.wear_off = False
         for passenger in self.passengers:
             passenger.relative_position += PASSENGER_SPEED * dt * passenger.direction
             if passenger.relative_position < 0:
@@ -417,7 +463,13 @@ class GameManager:
         for player in self.players:
             if player.fuel <= 0:
                 out_count += 1
-            if out_count == self.number_players:
+            if out_count == self.number_players and self.end_timer == -1:
+                self.end_timer = 0.5
+        if self.end_timer != -1:
+            if self.end_timer > 0:
+                self.end_timer -= dt
+            else:
+                self.end_timer = -1
                 self.is_over = True
 
     def get_scores(self):

@@ -3,7 +3,7 @@ from src.utils import Control
 
 
 class Button:
-    def __init__(self, type_, pos, window=None, gui=None):
+    def __init__(self, type_, pos, gui, window=None):
         self.x = pos[0]
         self.y = pos[1]
         if window is None and type == "quit":
@@ -45,6 +45,8 @@ class Button:
             self.sprite = self.default_sprite
 
         if self.is_focused and Control.control.just_released("ui_action"):
+            self.gui.play_sound = True
+            self.gui.sound = "select"
             if self.type == "start":
                 self.start_action()
             elif self.type == "settings":
