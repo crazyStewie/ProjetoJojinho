@@ -33,7 +33,7 @@ class GameManager:
         self.map: Map = None
         self.players = []
         self.passengers = []
-        self.MAX_PASSENGERS_REQUESTING = self.number_players//2
+        self.MAX_PASSENGERS_REQUESTING = math.ceil(self.number_players/2)
         self.TYPES_POWER_UP = 5
         self.passenger_can_request = True
         self.passenger_timer = -1
@@ -74,7 +74,7 @@ class GameManager:
             self.get_out_of_car_timers = [-1, -1]
             self.carriers = [-1, -1]
             self.power_ups = [None, None]
-            self.indicators = [None]
+            self.indicators = [None, None]
         with open("../assets/levels/Map%d.pickle" % self.map_number, "rb") as f:
             self.map = pickle.load(f)
         pyglet.resource.path = ["../assets/sprites"]
@@ -145,7 +145,7 @@ class GameManager:
                 if self.passenger_timer <= 0:
                     passenger_index = 0
                     while passenger_index < len(self.requesting_passengers) - 1 and \
-                            self.requesting_passengers[passenger_index] != -1:
+                            (self.requesting_passengers[passenger_index] != -1 or self.carriers[passenger_index] != -1):
                         passenger_index += 1
                     redo = True
                     requesting_passenger = None
@@ -307,7 +307,7 @@ class GameManager:
                     self.play_sound = True
                     self.sound = "power_up"
                     break
-        if len(self.power_ups) - self.power_ups.count(None) == self.number_players:
+        if len(self.power_ups) - self.power_ups.count(None) == 2*self.number_players:
             return
         if self.next_power_up is None:
             random_power_up = math.floor(random()*self.TYPES_POWER_UP)
