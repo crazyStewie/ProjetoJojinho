@@ -73,6 +73,6 @@ class Selector:
 
     def increment(self):
         if self.type == "level":
-            self.value = min(3, self.value + 1)
+            self.value = min(2, self.value + 1)
         elif self.type == "players":
             self.value = min(4, self.value + 1)

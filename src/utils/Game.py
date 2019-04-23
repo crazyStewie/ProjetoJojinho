@@ -115,6 +115,7 @@ class Game(pyglet.window.Window):
                 if self.music_player.playing:
                     self.music_player.next_source()
                 self.post_game_screen.destroy()
+                self.post_game_screen = None
                 self.current_state = MAIN_MENU
                 self.gui.setup_initial_menu(self.gui.params)
         pass
