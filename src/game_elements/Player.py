@@ -14,7 +14,7 @@ class Player:
         self.position = Vec2d(0, 0)
         self.rotation = 0
         self.player_id = player_id
-        self.FUEL_SCALE = 0.001
+        self.FUEL_SCALE = 0.002
         self.power_up = None
         self.accelerator_bonus = False
         self.accelerator_timer = -1

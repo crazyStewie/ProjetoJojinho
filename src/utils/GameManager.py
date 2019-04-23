@@ -62,7 +62,6 @@ class GameManager:
             self.get_out_of_car_timers = [-1]
             self.carriers = [-1]
             self.power_ups = [None]
-            self.indicators = [None]
         else:
             self.requesting_passengers = [-1, -1]
             self.get_in_car_timers = [-1, -1]
@@ -183,7 +182,7 @@ class GameManager:
                                                         requesting_passenger_index].sidewalk) * \
                     self.requesting_passengers[requesting_passenger_index].relative_position
             for player_index in range(len(self.players)):
-                if requesting_position.get_distance(self.players[player_index].body.position) < 27 \
+                if requesting_position.get_distance(self.players[player_index].body.position) < 24 \
                         and (self.getting_in_car_players[requesting_passenger_index] == player_index
                              or self.getting_in_car_players[requesting_passenger_index] == -1) and \
                         self.carriers.count(player_index) == 0 and self.players[player_index].fuel >= 0:
@@ -220,16 +219,6 @@ class GameManager:
                             self.tuple_destinations[requesting_passenger_index] = \
                                 (initial_sidewalk, initial_relative_position, random_sidewalk, random_relative_position)
                             self.carriers[requesting_passenger_index] = player_index
-                            pyglet.resource.path = ["../assets/sprites"]
-                            pyglet.resource.reindex()
-                            ind_image = pyglet.resource.image("indicator.png")
-                            ind_image.anchor_x = ind_image.width // 2
-                            ind_image.anchor_y = ind_image.height // 2
-                            ind_position = Vec2d(self.players[player_index].body.position.x,
-                                                 self.players[player_index].body.position.y) + Vec2d(7, 20).\
-                                rotated_degrees(-self.players[player_index].sprite.rotation)
-                            self.indicators[requesting_passenger_index] = \
-                                pyglet.sprite.Sprite(ind_image, ind_position.x, ind_position.y)
                             self.run_clocks[requesting_passenger_index] = 0
                             self.play_sound = True
                             self.sound = "enter"
@@ -258,8 +247,6 @@ class GameManager:
                         else:
                             self.destination_circles[carrier_index].delete()
                             self.destination_circles[carrier_index] = None
-                            self.indicators[carrier_index].delete()
-                            self.indicators[carrier_index] = None
                             self.carriers[carrier_index] = -1
                             position = Vec2d(
                                 self.map.sidewalk_first_crossing(self.tuple_destinations[carrier_index][2])) + \
@@ -344,7 +331,6 @@ class GameManager:
                 self.oil_puddles_timers.pop(oil_puddle_timer_index)
                 self.oil_puddles.pop(oil_puddle_timer_index)
                 self.oil_puddles_causers.pop(oil_puddle_timer_index)
-                break
         for player_index in range(len(self.players)):
             if Control.control.just_pressed("Power-up%d" % player_index) and \
                     self.players[player_index].power_up is not None:
@@ -361,18 +347,18 @@ class GameManager:
                     oil_image.anchor_y = oil_image.height // 2
                     self.oil_puddles.append(pyglet.sprite.Sprite(oil_image, self.players[player_index].body.position.x,
                                                                  self.players[player_index].body.position.y))
-                    self.oil_puddles_timers.append(20)
+                    self.oil_puddles_timers.append(5)
                     self.oil_puddles_causers.append(player_index)
                     self.play_sound = True
                     self.sound = "oil"
                 elif self.players[player_index].power_up.name == "invert":
                     self.players[player_index].apply_invert = True
-                    self.players[player_index].invert_timer = 3
+                    self.players[player_index].invert_timer = 2
                     self.play_sound = True
                     self.sound = "change_state"
                 elif self.players[player_index].power_up.name == "teleport":
                     self.players[player_index].apply_teleport = True
-                    self.players[player_index].teleport_timer = 3
+                    self.players[player_index].teleport_timer = 2
                     self.play_sound = True
                     self.sound = "change_state"
                 elif self.players[player_index].power_up.name == "self_teleport":
@@ -380,13 +366,13 @@ class GameManager:
                 self.players[player_index].power_up = None
             for oil_puddle_index in range(len(self.oil_puddles)):
                 if Vec2d(self.oil_puddles[oil_puddle_index].position).\
-                        get_distance(self.players[player_index].body.position) < 35 and \
+                        get_distance(self.players[player_index].body.position) < 30 and \
                         player_index != self.oil_puddles_causers[oil_puddle_index]:
                     self.players[player_index].is_oiled = True
                     self.players[player_index].oiled_timer = 20
                     self.change_music = True
                     self.music = "deja_vu"
-                    self.deja_vu_timer = 35
+                    self.deja_vu_timer = 20
         for player_index_1 in range(len(self.players)):
             for player_index_2 in range(len(self.players)):
                 if player_index_1 < player_index_2:
@@ -394,14 +380,14 @@ class GameManager:
                                    .shapes_collide(self.players[player_index_2].poly).points) != 0:
                         if self.players[player_index_1].apply_invert:
                             self.players[player_index_2].is_inverted = True
-                            self.players[player_index_2].inverted_timer = 7
+                            self.players[player_index_2].inverted_timer = 6
                             self.players[player_index_1].apply_invert = False
                             self.players[player_index_1].invert_timer = -1
                             self.play_sound = True
                             self.sound = "invert"
                         if self.players[player_index_2].apply_invert:
                             self.players[player_index_1].is_inverted = True
-                            self.players[player_index_1].inverted_timer = 7
+                            self.players[player_index_1].inverted_timer = 6
                             self.players[player_index_2].apply_invert = False
                             self.players[player_index_2].invert_timer = -1
                             self.play_sound = True
@@ -469,12 +455,6 @@ class GameManager:
         for clock_index in range(len(self.run_clocks)):
             if self.run_clocks[clock_index] != -1:
                 self.run_clocks[clock_index] += dt
-        for indicator_index in range(len(self.indicators)):
-            if self.indicators[indicator_index] is not None:
-                ind_position = Vec2d(self.players[self.carriers[indicator_index]].body.position.x,
-                                     self.players[self.carriers[indicator_index]].body.position.y) + Vec2d(7, 20). \
-                                   rotated_degrees(-self.players[self.carriers[indicator_index]].sprite.rotation)
-                self.indicators[indicator_index].update(ind_position.x, ind_position.y)
         for player_index in range(len(self.players)):
             if self.players[player_index].fuel <= 0:
                 if self.carriers.count(player_index) > 0:
@@ -482,8 +462,6 @@ class GameManager:
                     self.carriers[carrier_index] = -1
                     self.destination_circles[carrier_index].delete()
                     self.destination_circles[carrier_index] = None
-                    self.indicators[carrier_index].delete()
-                    self.indicators[carrier_index] = None
                     self.run_clocks[carrier_index] = -1
                     self.get_out_of_car_timers[carrier_index] = -1
                     self.tuple_destinations[carrier_index] = -1
@@ -527,9 +505,5 @@ class GameManager:
         for power_up in self.power_ups:
             if power_up is not None:
                 power_up.sprite.draw()
-        for indicator in self.indicators:
-            if indicator is not None:
-                indicator.draw()
         for oil_puddle in self.oil_puddles:
             oil_puddle.draw()
-
