@@ -1,14 +1,15 @@
 import pyglet
 from src.utils import Control
+from src.gui import GUI
 
 
 class Button:
     def __init__(self, type_, pos, gui, window=None):
         self.x = pos[0]
         self.y = pos[1]
-        if window is None and type == "quit":
+        if window is None and type_ == "quit":
             raise Exception("The window should be passed as an argument to the constructor in this case!")
-        if gui is None and (type == "config" or type == "return"):
+        if gui is None and (type_ == "config" or type_ == "return"):
             raise Exception("The gui should be passed as an argument to the constructor in this case!")
         self.window = window
         self.gui = gui
@@ -61,14 +62,16 @@ class Button:
         self.label.draw()
 
     def start_action(self):
-        self.gui.setup_for_game()
+        self.gui.set_state(GUI.GameSetup)
+        self.gui.setup()
 
     def config_action(self):
         config_params = []
         for i in range(len(self.gui.active_elements)):
             if i == 1 or i == 2:
                 config_params += [self.gui.active_elements[i].value]
-        self.gui.setup_for_config_menu(self.gui.config_params)
+        self.gui.set_state(GUI.ConfigSetup)
+        self.gui.setup()
         self.gui.config_params = config_params
 
     def return_action(self):
@@ -76,7 +79,8 @@ class Button:
         for i in range(len(self.gui.active_elements)):
             if i > 0:
                 config_params += [self.gui.active_elements[i].value]
-        self.gui.setup_initial_menu(self.gui.config_params)
+        self.gui.set_state(GUI.InitialSetup)
+        self.gui.setup(self.gui.config_params)
         self.gui.config_params = config_params
 
     def quit_action(self):

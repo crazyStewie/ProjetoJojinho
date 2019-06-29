@@ -6,6 +6,7 @@ from src.game_elements.Player import Player
 from src.py_aux import consts
 import pymunk
 from src.gui.EndScreen import EndScreen
+import abc
 MAIN_MENU = 0
 IN_GAME = 1
 POST_GAME = 3
@@ -16,9 +17,9 @@ class Game(pyglet.window.Window):
         super(Game, self).__init__(width=consts.WINDOW_WIDTH, height=consts.WINDOW_HEIGHT, fullscreen=True)
         pyglet.clock.schedule_interval(self.update, 1/consts.FPS)
         Control.control.setup(self)
-        self.current_state = MAIN_MENU
+        self.state = MainMenuState
         self.gui = GUI(self)
-        self.gui.setup_initial_menu()
+        self.gui.setup()
         self.game_manager = None
         self.fps_display = pyglet.window.FPSDisplay(self)
         self.frame_count = 0
@@ -70,64 +71,92 @@ class Game(pyglet.window.Window):
             print("delta = " + str(dt))
             print("fps   = " + str(1/dt))
             dt = 1/10
-        if self.gui.mode == "game" and self.current_state == MAIN_MENU:
-            self.current_state = IN_GAME
-            self.game_manager = GameManager(self.gui.num_players, self.gui.game_level)
-            if self.music_player.playing:
-                self.music_player.next_source()
-        if self.current_state == IN_GAME:
-            if not self.music_player.playing:
-                self.music_player.queue(self.musics[self.game_manager.music])
-                self.music_player.play()
-            if self.game_manager.change_music:
-                self.music_player.next_source()
-                self.music_player.queue(self.musics[self.game_manager.music])
-                self.game_manager.change_music = False
-                self.music_player.play()
-            if self.game_manager.play_sound:
-                self.game_manager.play_sound = False
-                self.sounds[self.game_manager.sound].play()
-            # self.player0.update(dt)
-            # self.player1.update(dt)
-            # self.space.step(dt)
-            self.game_manager.update(dt)
-            if self.game_manager.is_over:
-                self.current_state = POST_GAME
-        if self.current_state == MAIN_MENU:
-            if not self.music_player.playing:
-                self.music_player.queue(self.musics["top_gear"])
-                self.music_player.play()
-            self.gui.update(dt)
-            if self.gui.play_sound:
-                self.gui.play_sound = False
-                self.sounds[self.gui.sound].play()
-        if self.current_state == POST_GAME:
-            if self.music_player.playing:
-                self.music_player.next_source()
-            if self.post_game_screen is None:
-                self.post_game_screen = EndScreen(self.game_manager.get_scores())
-                self.game_manager = None
-            if self.post_game_screen.play_sound:
-                self.sounds["money"].play()
-                self.post_game_screen.play_sound = False
-            self.post_game_screen.update(dt)
-            if self.post_game_screen.is_over:
-                if self.music_player.playing:
-                    self.music_player.next_source()
-                self.post_game_screen.destroy()
-                self.current_state = MAIN_MENU
-                self.gui.setup_initial_menu(self.gui.params)
+        self.state.update(self, dt)
         pass
 
     def on_draw(self):
         self.clear()
-        if self.current_state == MAIN_MENU:
-            self.gui.draw()
-        if self.current_state == IN_GAME:
-            self.game_manager.draw()
-            # self.player0.draw()
-            # self.player1.draw()
-        if self.current_state == POST_GAME:
-            self.post_game_screen.draw()
+        self.state.on_draw(self)
         self.fps_display.draw()
         pass
+
+
+class State(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def update(game, dt):
+        pass
+
+    @abc.abstractmethod
+    def on_draw(game):
+        pass
+
+
+class MainMenuState(State):
+    @staticmethod
+    def update(game, dt):
+        if game.gui.state.get_name() == "game":
+            game.state = InGameState
+            game.game_manager = GameManager(game.gui.num_players, game.gui.game_level)
+            if game.music_player.playing:
+                game.music_player.next_source()
+        if not game.music_player.playing:
+            game.music_player.queue(game.musics["top_gear"])
+            game.music_player.play()
+        game.gui.update(dt)
+        if game.gui.play_sound:
+            game.gui.play_sound = False
+            game.sounds[game.gui.sound].play()
+
+    @staticmethod
+    def on_draw(game):
+        game.gui.draw()
+
+
+class InGameState(State):
+    @staticmethod
+    def update(game, dt):
+        if not game.music_player.playing:
+            game.music_player.queue(game.musics[game.game_manager.music])
+            game.music_player.play()
+        if game.game_manager.change_music:
+            game.music_player.next_source()
+            game.music_player.queue(game.musics[game.game_manager.music])
+            game.game_manager.change_music = False
+            game.music_player.play()
+        if game.game_manager.play_sound:
+            game.game_manager.play_sound = False
+            game.sounds[game.game_manager.sound].play()
+        # game.player0.update(dt)
+        # game.player1.update(dt)
+        # game.space.step(dt)
+        game.game_manager.update(dt)
+        if game.game_manager.is_over:
+            game.state = PostGameState
+
+    @staticmethod
+    def on_draw(game):
+        game.game_manager.draw()
+
+
+class PostGameState(State):
+    @staticmethod
+    def update(game, dt):
+        if game.music_player.playing:
+            game.music_player.next_source()
+        if game.post_game_screen is None:
+            game.post_game_screen = EndScreen(game.game_manager.get_scores())
+            game.game_manager = None
+        if game.post_game_screen.play_sound:
+            game.sounds["money"].play()
+            game.post_game_screen.play_sound = False
+        game.post_game_screen.update(dt)
+        if game.post_game_screen.is_over:
+            if game.music_player.playing:
+                game.music_player.next_source()
+            game.post_game_screen.destroy()
+            game.state = MainMenuState
+            game.gui.setup(game.gui.params)
+
+    @staticmethod
+    def on_draw(game):
+        game.post_game_screen.draw()
